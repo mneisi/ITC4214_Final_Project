@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Your Profile - SoundSphere{% endblock %}
+
+{% block body %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="section-title">Your Profile</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Profile Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-header text-center p-4" style="background: var(--primary-gradient);">
+                        {% if user_profile.profile_picture %}
+                        <img src="{{ user_profile.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle img-thumbnail mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="text-white mb-3 d-flex justify-content-center">
+                            <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.2);" class="rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user fa-4x"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <h5 class="text-white mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                        <p class="text-white-50 mb-0">@{{ user.username }}</p>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush rounded-bottom">
+                            <a href="{% url 'Authentication:dashboard' %}" class="list-group-item list-group-item-action border-0 p-3">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                            <a href="{% url 'Authentication:profile' %}" class="list-group-item list-group-item-action border-0 p-3 active">
+                                <i class="fas fa-user-circle me-2"></i>Profile
+                            </a>
+                            <a href="{% url 'Authentication:wishlist' %}" class="list-group-item list-group-item-action border-0 p-3">
+                                <i class="fas fa-heart me-2"></i>Wishlist
+                            </a>
+                            <a href="{% url 'ShoppingCart:order_history' %}" class="list-group-item list-group-item-action border-0 p-3">
+                                <i class="fas fa-history me-2"></i>Order History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="col-lg-9">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header p-4 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Profile Information</h4>
+                            <a href="{% url 'Authentication:edit_profile' %}" class="btn btn-primary">
+                                <i class="fas fa-pencil-alt me-2"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <h5>Personal Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Username</th>
+                                        <td>{{ user.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td>{{ user.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone</th>
+                                        <td>{{ user_profile.phone_number|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Birth Date</th>
+                                        <td>{{ user_profile.birth_date|date:"F d, Y"|default:"Not provided" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Address Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Address</th>
+                                        <td>{{ user_profile.address|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>City</th>
+                                        <td>{{ user_profile.city|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>State</th>
+                                        <td>{{ user_profile.state|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>ZIP Code</th>
+                                        <td>{{ user_profile.zip_code|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Country</th>
+                                        <td>{{ user_profile.country|default:"Not provided" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>Account Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Account Created</th>
+                                        <td>{{ user.date_joined|date:"F d, Y" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Last Login</th>
+                                        <td>{{ user.last_login|date:"F d, Y H:i" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

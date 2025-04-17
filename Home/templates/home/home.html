@@ -1,6 +1,343 @@
 {% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
 {% block body %}
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h1 class="animate-on-scroll">Experience Sound Perfection</h1>
+                    <p class="animate-on-scroll">Discover premium audio equipment that delivers exceptional sound quality. From headphones to speakers, we have everything you need for an immersive audio experience.</p>
+                    <div class="d-flex gap-3 animate-on-scroll">
+                        <a href="#" class="btn btn-primary btn-lg">Shop Now</a>
+                        <a href="#" class="btn btn-outline-light btn-lg">Explore</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <h1>test</h1>
+    <!-- Featured Products Section -->
+    <section class="container py-5">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="d-flex justify-content-center">
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary filter-btn active" data-filter="all">All</button>
+                        <button class="btn btn-outline-primary filter-btn" data-filter="headphones">Headphones</button>
+                        <button class="btn btn-outline-primary filter-btn" data-filter="speakers">Speakers</button>
+                        <button class="btn btn-outline-primary filter-btn" data-filter="turntables">Turntables</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Product 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card product-card" data-category="headphones">
+                    <img src="https://images.unsplash.com/photo-1545127398-14699f92334b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="Wireless Headphones">
+                    <div class="card-body">
+                        <h5 class="product-title">Ultra Comfort Headphones</h5>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span class="ms-2">(120)</span>
+                        </div>
+                        <p class="product-price">$199.99</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Product 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card product-card" data-category="speakers">
+                    <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="Bluetooth Speaker">
+                    <div class="card-body">
+                        <h5 class="product-title">Premium Bluetooth Speaker</h5>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span class="ms-2">(84)</span>
+                        </div>
+                        <p class="product-price">$149.99</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Product 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card product-card" data-category="turntables">
+                    <img src="https://images.unsplash.com/photo-1616077167599-cad3639f9282?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="Vinyl Turntable">
+                    <div class="card-body">
+                        <h5 class="product-title">Classic Vinyl Turntable</h5>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span class="ms-2">(56)</span>
+                        </div>
+                        <p class="product-price">$249.99</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Product 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card product-card" data-category="headphones">
+                    <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="In-ear Earphones">
+                    <div class="card-body">
+                        <h5 class="product-title">Pro Wireless Earbuds</h5>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <i class="far fa-star"></i>
+                            <span class="ms-2">(98)</span>
+                        </div>
+                        <p class="product-price">$129.99</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="#" class="btn btn-outline-primary">View All Products</a>
+        </div>
+    </section>
 
+    <!-- Categories Section -->
+    <section class="container py-5">
+        <h2 class="text-center mb-5">Shop by Category</h2>
+        <div class="row">
+            <!-- Category 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="category-item">
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Headphones">
+                    <div class="category-overlay">
+                        <h3 class="category-title">Headphones</h3>
+                        <a href="#" class="btn btn-outline-light btn-sm">View All</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Category 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="category-item">
+                    <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Speakers">
+                    <div class="category-overlay">
+                        <h3 class="category-title">Speakers</h3>
+                        <a href="#" class="btn btn-outline-light btn-sm">View All</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Category 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="category-item">
+                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Turntables">
+                    <div class="category-overlay">
+                        <h3 class="category-title">Turntables</h3>
+                        <a href="#" class="btn btn-outline-light btn-sm">View All</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Category 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="category-item">
+                    <img src="https://images.unsplash.com/photo-1612444530582-fc66183b16f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Accessories">
+                    <div class="category-overlay">
+                        <h3 class="category-title">Accessories</h3>
+                        <a href="#" class="btn btn-outline-light btn-sm">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container py-5">
+            <h2 class="text-center mb-5">Why Choose SoundSphere</h2>
+            <div class="row">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h4>Free Shipping</h4>
+                        <p>Free shipping on all orders over $99</p>
+                    </div>
+                </div>
+                <!-- Feature 2 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <h4>Easy Returns</h4>
+                        <p>30-day money back guarantee</p>
+                    </div>
+                </div>
+                <!-- Feature 3 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4>24/7 Support</h4>
+                        <p>Dedicated support team available</p>
+                    </div>
+                </div>
+                <!-- Feature 4 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>Secure Payment</h4>
+                        <p>100% secure payment methods</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="container py-5">
+        <h2 class="text-center mb-5">What Our Customers Say</h2>
+        <div class="row">
+            <!-- Testimonial 1 -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="rating mb-3">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text">"I've never experienced such amazing sound quality before. The headphones I purchased are absolutely worth every penny. The comfort and noise cancellation are top-notch!"</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle overflow-hidden me-3" style="width:50px;height:50px;">
+                                <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Customer" class="img-fluid">
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Sarah Johnson</h6>
+                                <small class="text-muted">Music Producer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Testimonial 2 -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="rating mb-3">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="card-text">"The shipping was incredibly fast, and the customer service was exceptional when I had questions. My new speaker system has transformed how I enjoy music at home."</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle overflow-hidden me-3" style="width:50px;height:50px;">
+                                <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Customer" class="img-fluid">
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Michael Davis</h6>
+                                <small class="text-muted">Sound Engineer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Testimonial 3 -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="rating mb-3">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="card-text">"I've purchased multiple items from SoundSphere, and I'm always impressed by the quality. The turntable I recently bought exceeded my expectations and brought my vinyl collection back to life."</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle overflow-hidden me-3" style="width:50px;height:50px;">
+                                <img src="https://randomuser.me/api/portraits/women/62.jpg" alt="Customer" class="img-fluid">
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Emma Wilson</h6>
+                                <small class="text-muted">Music Enthusiast</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="mb-4">Join Our Newsletter</h2>
+                    <p class="mb-4">Subscribe to receive updates on new products, special offers, and audio tips.</p>
+                    <form class="mb-3">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Your Email Address">
+                            <button class="btn btn-light" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                    <small>We respect your privacy. Unsubscribe at any time.</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top btn btn-primary position-fixed bottom-0 end-0 m-4" style="display: none;">
+        <i class="fas fa-arrow-up"></i>
+    </a>
 {% endblock %}

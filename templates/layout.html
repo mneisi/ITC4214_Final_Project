@@ -3,49 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoundSphere</title>
-        
+    <title>{% block title %}SoundSphere{% endblock %}</title>
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-        
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% include "navbar.html" %}
-    <!-- Main Content -->
-    <main class="container my-5">
-        {% block content %}{% endblock %}
-    </main>
-    {% include "footer.html" %}
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'Home:home' %}">
+                <i class="fas fa-headphones-alt me-2"></i>SoundSphere
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Home:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Store:product_list' %}">Products</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            {% for category in categories|default:'' %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Store:category_products' category.slug %}">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li><a class="dropdown-item" href="{% url 'Store:product_list' %}">All Categories</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <!-- Search Form -->
+                    <form class="d-flex me-3" action="{% url 'Store:search_products' %}" method="get">
+                        <div class="input-group">
+                            <input class="form-control" type="search" name="q" placeholder="Search products..." aria-label="Search">
+                            <button class="btn btn-light" type="submit">
+                                <i class="fas fa-search text-primary"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Cart Button -->
+                    <a href="{% url 'ShoppingCart:view_cart' %}" class="btn btn-outline-light position-relative me-2">
+                        <i class="fas fa-shopping-cart"></i>
+                        {% if request.user.is_authenticated and request.user.cart.total_items > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
+                            {{ request.user.cart.total_items }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- User Menu -->
+                    {% if request.user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i>{{ request.user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Authentication:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Authentication:profile' %}">
+                                    <i class="fas fa-user-circle me-2"></i>Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Authentication:wishlist' %}">
+                                    <i class="fas fa-heart me-2"></i>Wishlist
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'ShoppingCart:order_history' %}">
+                                    <i class="fas fa-history me-2"></i>Order History
+                                </a>
+                            </li>
+                            {% if request.user.is_staff %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Staff:dashboard' %}">
+                                    <i class="fas fa-cogs me-2"></i>Staff Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                    <i class="fas fa-user-shield me-2"></i>Admin Panel
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'Authentication:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'Authentication:login' %}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                    <a href="{% url 'Authentication:register' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-user-plus me-1"></i>Register
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
     
-    <!-- Dark Mode Toggle -->
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const storedTheme = localStorage.getItem('theme');
-        
-        const getPreferredTheme = () => {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        };
-
-        const setTheme = (theme) => {
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            themeToggle.innerHTML = theme === 'dark' ? 
-                '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        };
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // Initialize theme
-        setTheme(storedTheme || getPreferredTheme());
-    </script>
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    {% block body %}{% endblock %}
+    
+    <!-- Footer -->
+    <footer class="text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>SoundSphere</h5>
+                    <p class="text-muted">Your premier destination for audio equipment and accessories.</p>
+                    <div class="social-icons mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0">
+                    <h5>Shop</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'Store:product_list' %}">All Products</a></li>
+                        <li><a href="#">Headphones</a></li>
+                        <li><a href="#">Speakers</a></li>
+                        <li><a href="#">Accessories</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Newsletter</h5>
+                    <p class="text-muted">Subscribe to get updates on new products and special offers.</p>
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Enter your email" aria-label="Email">
+                        <button class="btn btn-light" type="button">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 opacity-25">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-muted">&copy; {% now "Y" %} SoundSphere. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 text-muted">
+                        <a href="#" class="me-3">Privacy Policy</a>
+                        <a href="#" class="me-3">Terms of Service</a>
+                        <a href="#">Sitemap</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
-</html>
+</html> 
