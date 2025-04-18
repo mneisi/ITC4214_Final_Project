@@ -1,0 +1,366 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Order Management - SoundSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-pending {
+        background-color: var(--yellow-100);
+        color: var(--yellow-700);
+    }
+    
+    .status-processing {
+        background-color: var(--blue-100);
+        color: var(--blue-700);
+    }
+    
+    .status-shipped {
+        background-color: var(--indigo-100);
+        color: var(--indigo-700);
+    }
+    
+    .status-delivered {
+        background-color: var(--green-100);
+        color: var(--green-700);
+    }
+    
+    .status-cancelled {
+        background-color: var(--red-100);
+        color: var(--red-700);
+    }
+    
+    .order-card {
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition-normal);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    
+    .order-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--primary-200);
+    }
+    
+    .order-header {
+        background-color: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .order-details {
+        padding: 1.5rem;
+    }
+    
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .product-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        background-color: var(--gray-100);
+        border-radius: var(--radius-md);
+    }
+    
+    .filter-container {
+        background-color: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Page Header -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-0">Order Management</h1>
+                <p class="text-muted">Monitor and manage customer orders</p>
+            </div>
+            <div>
+                <a href="{% url 'Staff:export_orders' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-export me-2"></i>Export Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Filters -->
+    <div class="filter-container">
+        <form method="get" action="{% url 'Staff:order_management' %}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="order-number" class="form-label">Order Number</label>
+                <input type="text" id="order-number" name="order_number" class="form-control" placeholder="Search orders" value="{{ request.GET.order_number|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>Processing</option>
+                    <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date-from" class="form-label">Date From</label>
+                <input type="date" id="date-from" name="date_from" class="form-control" value="{{ request.GET.date_from|default:'' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date-to" class="form-label">Date To</label>
+                <input type="date" id="date-to" name="date_to" class="form-control" value="{{ request.GET.date_to|default:'' }}">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Orders List -->
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12">
+            <div class="order-card">
+                <div class="order-header d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="d-flex align-items-center gap-4">
+                        <h5 class="mb-0">#{{ order.order_number }}</h5>
+                        <div class="status-badge status-{{ order.status }}">
+                            <span class="status-indicator"></span>
+                            {{ order.get_status_display }}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="text-muted">{{ order.created_at|date:"M d, Y" }}</span>
+                        <button type="button" class="btn btn-sm btn-outline" data-bs-toggle="collapse" data-bs-target="#order-{{ order.id }}-details">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="collapse" id="order-{{ order.id }}-details">
+                    <div class="order-details">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-3">Customer Information</h6>
+                                <p class="mb-1">
+                                    <strong>{{ order.user.get_full_name }}</strong>
+                                </p>
+                                <p class="mb-1">{{ order.user.email }}</p>
+                                {% if order.user.userprofile.phone %}
+                                <p class="mb-1">{{ order.user.userprofile.phone }}</p>
+                                {% endif %}
+                                <p class="mb-0 text-muted">User since {{ order.user.date_joined|date:"M Y" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-3">Shipping Address</h6>
+                                <p class="mb-1">{{ order.shipping_address1 }}</p>
+                                {% if order.shipping_address2 %}
+                                <p class="mb-1">{{ order.shipping_address2 }}</p>
+                                {% endif %}
+                                <p class="mb-1">{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_zipcode }}</p>
+                                <p class="mb-0">{{ order.shipping_country }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-3">Order Summary</h6>
+                                <p class="mb-1">
+                                    <span class="text-muted">Items:</span>
+                                    <span class="float-end">${{ order.get_items_total|floatformat:2 }}</span>
+                                </p>
+                                <p class="mb-1">
+                                    <span class="text-muted">Shipping:</span>
+                                    <span class="float-end">${{ order.shipping_cost|floatformat:2 }}</span>
+                                </p>
+                                <p class="mb-1">
+                                    <span class="text-muted">Tax:</span>
+                                    <span class="float-end">${{ order.tax|floatformat:2 }}</span>
+                                </p>
+                                <hr>
+                                <p class="mb-0 fw-bold">
+                                    <span>Total:</span>
+                                    <span class="float-end">${{ order.total_price|floatformat:2 }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h6 class="text-muted mb-3">Order Items</h6>
+                        <div class="order-items">
+                            {% for item in order.orderitem_set.all %}
+                            <div class="product-item">
+                                {% if item.product.get_primary_image %}
+                                <img src="{{ item.product.get_primary_image.url }}" alt="{{ item.product.name }}" class="product-image">
+                                {% else %}
+                                <div class="product-image d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-box fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                                            <p class="text-muted mb-0">SKU: {{ item.product.sku }}</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <p class="mb-1">${{ item.price|floatformat:2 }}</p>
+                                            <p class="mb-0 text-muted">x{{ item.quantity }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div>
+                                <p class="text-muted mb-0">
+                                    <strong>Payment Method:</strong> {{ order.payment_method }}
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'Staff:update_order_status' order.id %}" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <select name="status" class="form-select form-select-sm" aria-label="Update status">
+                                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                                        <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                                        <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                </form>
+                                <a href="{% url 'Staff:order_detail' order.id %}" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-eye me-1"></i>Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5 bg-light rounded">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                <h4>No orders found</h4>
+                <p class="text-muted">
+                    {% if request.GET %}
+                    No orders match your filter criteria. Try adjusting your filters.
+                    {% else %}
+                    There are no orders in the system yet.
+                    {% endif %}
+                </p>
+                {% if request.GET %}
+                <a href="{% url 'Staff:order_management' %}" class="btn btn-outline-primary">Clear Filters</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if orders.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if orders.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ orders.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for i in orders.paginator.page_range %}
+            {% if orders.number == i %}
+            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+            {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ orders.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ orders.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply CSS classes to status badges
+        document.querySelectorAll('.status-badge').forEach(function(badge) {
+            const status = badge.textContent.trim().toLowerCase();
+            badge.classList.add(`status-${status}`);
+        });
+    });
+</script>
+{% endblock %} 

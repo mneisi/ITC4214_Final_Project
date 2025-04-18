@@ -1,0 +1,508 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}
+{% if product %}Edit Product: {{ product.name }}{% else %}Add New Product{% endif %} - SoundSphere
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        background-color: white;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .preview-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .image-preview-container {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    
+    .image-preview-item {
+        position: relative;
+    }
+    
+    .remove-image {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: var(--red-500);
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    
+    .specification-row {
+        background-color: var(--gray-50);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+    }
+    
+    #image-upload-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .upload-preview-item {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .upload-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .upload-preview-item .remove-upload {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 255, 255, 0.8);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--red-600);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Page Header -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-0">{% if product %}Edit Product{% else %}Add New Product{% endif %}</h1>
+                <p class="text-muted">
+                    {% if product %}Update product information{% else %}Create a new product listing{% endif %}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'Staff:product_management' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Products
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="form-container">
+                <form method="post" action="{% if product %}{% url 'Staff:edit_product' product.id %}{% else %}{% url 'Staff:add_product' %}{% endif %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <h3 class="mb-4">Basic Information</h3>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_name" class="form-label">Product Name*</label>
+                            <input type="text" name="name" id="id_name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" value="{{ form.name.value|default:'' }}" required>
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_sku" class="form-label">SKU*</label>
+                            <input type="text" name="sku" id="id_sku" class="form-control {% if form.sku.errors %}is-invalid{% endif %}" value="{{ form.sku.value|default:'' }}" required>
+                            {% if form.sku.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.sku.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_category" class="form-label">Category*</label>
+                            <select name="category" id="id_category" class="form-select {% if form.category.errors %}is-invalid{% endif %}" required>
+                                <option value="">Select Category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if form.category.value|stringformat:"i" == category.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.category.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.category.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_subcategory" class="form-label">Subcategory</label>
+                            <select name="subcategory" id="id_subcategory" class="form-select {% if form.subcategory.errors %}is-invalid{% endif %}">
+                                <option value="">Select Subcategory</option>
+                                {% if subcategories %}
+                                {% for subcategory in subcategories %}
+                                <option value="{{ subcategory.id }}" {% if form.subcategory.value|stringformat:"i" == subcategory.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ subcategory.name }}
+                                </option>
+                                {% endfor %}
+                                {% endif %}
+                            </select>
+                            {% if form.subcategory.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.subcategory.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">Description*</label>
+                        <textarea name="description" id="id_description" rows="5" class="form-control {% if form.description.errors %}is-invalid{% endif %}" required>{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="id_price" class="form-label">Price ($)*</label>
+                            <input type="number" name="price" id="id_price" step="0.01" min="0" class="form-control {% if form.price.errors %}is-invalid{% endif %}" value="{{ form.price.value|default:'' }}" required>
+                            {% if form.price.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.price.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_sale_price" class="form-label">Sale Price ($)</label>
+                            <input type="number" name="sale_price" id="id_sale_price" step="0.01" min="0" class="form-control {% if form.sale_price.errors %}is-invalid{% endif %}" value="{{ form.sale_price.value|default:'' }}">
+                            {% if form.sale_price.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.sale_price.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_stock" class="form-label">Stock Quantity*</label>
+                            <input type="number" name="stock" id="id_stock" min="0" class="form-control {% if form.stock.errors %}is-invalid{% endif %}" value="{{ form.stock.value|default:'' }}" required>
+                            {% if form.stock.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.stock.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h3 class="mb-4">Product Images</h3>
+                    
+                    {% if product and product.productimage_set.all %}
+                    <div class="mb-4">
+                        <label class="form-label">Current Images</label>
+                        <div class="image-preview-container">
+                            {% for image in product.productimage_set.all %}
+                            <div class="image-preview-item">
+                                <img src="{{ image.image.url }}" alt="Product image" class="preview-image">
+                                <div class="remove-image" data-image-id="{{ image.id }}">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <input type="hidden" name="removed_images" id="removed_images_{{ image.id }}" value="{{ image.id }}" disabled>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="product_images" class="form-label">Upload Images</label>
+                        <input type="file" name="product_images" id="product_images" class="form-control" multiple accept="image/*">
+                        <div class="form-text">Upload multiple images (JPEG, PNG). First image will be used as the main product image.</div>
+                        <div id="image-upload-preview"></div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h3 class="mb-4">Product Specifications</h3>
+                    
+                    <div id="specifications-container">
+                        {% if product and product.productspecification_set.all %}
+                        {% for spec in product.productspecification_set.all %}
+                        <div class="specification-row">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <label class="form-label">Specification Name</label>
+                                    <input type="text" name="spec_name[]" class="form-control" value="{{ spec.name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Specification Value</label>
+                                    <input type="text" name="spec_value[]" class="form-control" value="{{ spec.value }}" required>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger remove-spec-btn">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="specification-row">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <label class="form-label">Specification Name</label>
+                                    <input type="text" name="spec_name" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Specification Value</label>
+                                    <input type="text" name="spec_value" class="form-control" required>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger remove-spec-btn">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <button type="button" id="add-spec-btn" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Add Specification
+                        </button>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h3 class="mb-4">Additional Information</h3>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_brand" class="form-label">Brand</label>
+                            <input type="text" name="brand" id="id_brand" class="form-control {% if form.brand.errors %}is-invalid{% endif %}" value="{{ form.brand.value|default:'' }}">
+                            {% if form.brand.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.brand.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_model" class="form-label">Model</label>
+                            <input type="text" name="model" id="id_model" class="form-control {% if form.model.errors %}is-invalid{% endif %}" value="{{ form.model.value|default:'' }}">
+                            {% if form.model.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.model.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active" {% if form.is_active.value %}checked{% endif %}>
+                        <label class="form-check-label" for="id_is_active">Active (Product will be visible on the store)</label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="id_is_featured" name="is_featured" {% if form.is_featured.value %}checked{% endif %}>
+                        <label class="form-check-label" for="id_is_featured">Featured Product</label>
+                    </div>
+                    
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="{% url 'Staff:product_management' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if product %}Update Product{% else %}Create Product{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle category selection change
+        const categorySelect = document.getElementById('id_category');
+        const subcategorySelect = document.getElementById('id_subcategory');
+        
+        categorySelect.addEventListener('change', function() {
+            fetchSubcategories(this.value);
+        });
+        
+        function fetchSubcategories(categoryId) {
+            if (!categoryId) {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                return;
+            }
+            
+            fetch(`{% url 'Staff:get_subcategories' %}?category_id=${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                    data.subcategories.forEach(subcategory => {
+                        const option = document.createElement('option');
+                        option.value = subcategory.id;
+                        option.textContent = subcategory.name;
+                        subcategorySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching subcategories:', error));
+        }
+        
+        // Image upload preview
+        const imageInput = document.getElementById('product_images');
+        const previewContainer = document.getElementById('image-upload-preview');
+        
+        imageInput.addEventListener('change', function() {
+            previewContainer.innerHTML = '';
+            
+            if (this.files) {
+                Array.from(this.files).forEach((file, index) => {
+                    if (!file.type.match('image.*')) {
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'upload-preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-upload';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.addEventListener('click', function() {
+                            previewItem.remove();
+                            // Note: This doesn't remove the file from the input
+                        });
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+        
+        // Remove existing image
+        const removeImageBtns = document.querySelectorAll('.remove-image');
+        removeImageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const imageId = this.getAttribute('data-image-id');
+                const hiddenInput = document.getElementById(`removed_images_${imageId}`);
+                
+                if (hiddenInput) {
+                    hiddenInput.disabled = false;
+                }
+                
+                this.parentElement.style.opacity = '0.3';
+            });
+        });
+        
+        // Add specification
+        const addSpecBtn = document.getElementById('add-spec-btn');
+        const specificationsContainer = document.getElementById('specifications-container');
+        
+        addSpecBtn.addEventListener('click', function() {
+            const specRow = document.createElement('div');
+            specRow.className = 'specification-row';
+            specRow.innerHTML = `
+                <div class="row">
+                    <div class="col-md-5">
+                        <label class="form-label">Specification Name</label>
+                        <input type="text" name="spec_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Specification Value</label>
+                        <input type="text" name="spec_value" class="form-control" required>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger remove-spec-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            specificationsContainer.appendChild(specRow);
+            
+            // Add event listener for the new remove button
+            specRow.querySelector('.remove-spec-btn').addEventListener('click', function() {
+                specRow.remove();
+            });
+        });
+        
+        // Remove specification (for initial specs)
+        document.querySelectorAll('.remove-spec-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.specification-row').remove();
+            });
+        });
+    });
+</script>
+{% endblock %} 

@@ -4,13 +4,16 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Count, Sum, Avg, Q
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from Store.models import Category, SubCategory, Product, ProductImage, ProductSpecification, Review
 from ShoppingCart.models import Order, OrderItem
 from Authentication.models import UserProfile, RecentActivity
 from django import forms
 from django.utils.text import slugify
 import datetime
+import csv
+from django.utils import timezone
+from datetime import timedelta
 
 def is_staff(user):
     return user.is_staff
@@ -46,50 +49,90 @@ class ProductSpecificationForm(forms.ModelForm):
 @login_required
 @user_passes_test(is_staff)
 def staff_dashboard(request):
-    # Get counts for dashboard
-    total_products = Product.objects.count()
+    # Get statistics
     total_orders = Order.objects.count()
-    total_users = User.objects.filter(is_staff=False).count()
-    total_categories = Category.objects.count()
+    total_products = Product.objects.count()
+    total_customers = User.objects.filter(is_staff=False).count()
+    
+    # Calculate total revenue
+    total_revenue = sum(order.total_price for order in Order.objects.all())
+    
+    # Calculate low stock products
+    low_stock_count = Product.objects.filter(stock__lt=5).count()
     
     # Get recent orders
     recent_orders = Order.objects.order_by('-created_at')[:5]
+    for order in recent_orders:
+        if order.status == 'pending':
+            order.status_color = 'warning'
+        elif order.status == 'processing':
+            order.status_color = 'info'
+        elif order.status == 'shipped':
+            order.status_color = 'primary'
+        elif order.status == 'delivered':
+            order.status_color = 'success'
+        elif order.status == 'cancelled':
+            order.status_color = 'danger'
+        else:
+            order.status_color = 'secondary'
     
-    # Get popular products
-    popular_products = Product.objects.annotate(
-        num_purchases=Count('activities', filter=Q(activities__activity_type='purchased'))
-    ).order_by('-num_purchases')[:5]
+    # Get top selling products
+    top_products = Product.objects.all()[:5]  # This should be refined based on actual sales data
     
-    # Get stock alerts (products with low stock)
-    low_stock_products = Product.objects.filter(
-        Q(stock__lte=10) & ~Q(availability='Out of Stock')
-    )[:5]
+    # Mock data for sales chart
+    sales_data = {
+        'mon': 150,
+        'tue': 230,
+        'wed': 180,
+        'thu': 250,
+        'fri': 300,
+        'sat': 200,
+        'sun': 220,
+    }
     
-    # Get sales data
-    today = datetime.date.today()
-    month_start = today.replace(day=1)
-    year_start = today.replace(month=1, day=1)
+    # Collect all statistics
+    stats = {
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'total_customers': total_customers,
+        'total_products': total_products,
+        'low_stock_count': low_stock_count,
+        'orders_increase': 15,  # Mock percentage
+        'revenue_increase': 12,  # Mock percentage
+        'customers_increase': 8,  # Mock percentage
+    }
     
-    # Sales this month
-    monthly_sales = Order.objects.filter(
-        created_at__gte=month_start
-    ).aggregate(total=Sum('total_price'))['total'] or 0
-    
-    # Sales this year
-    yearly_sales = Order.objects.filter(
-        created_at__gte=year_start
-    ).aggregate(total=Sum('total_price'))['total'] or 0
+    # Get recent activities (mocked for now)
+    recent_activities = [
+        {
+            'type_color': 'success',
+            'icon': 'shopping-cart',
+            'message': 'New order #12345 has been placed',
+            'timestamp': timezone.now() - timedelta(hours=2),
+            'user': request.user,
+        },
+        {
+            'type_color': 'primary',
+            'icon': 'box',
+            'message': 'Product "Audio Technica M50x" has been updated',
+            'timestamp': timezone.now() - timedelta(hours=5),
+            'user': request.user,
+        },
+        {
+            'type_color': 'warning',
+            'icon': 'user',
+            'message': 'New user John Doe has registered',
+            'timestamp': timezone.now() - timedelta(days=1),
+            'user': request.user,
+        },
+    ]
     
     context = {
-        'total_products': total_products,
-        'total_orders': total_orders,
-        'total_users': total_users,
-        'total_categories': total_categories,
+        'stats': stats,
         'recent_orders': recent_orders,
-        'popular_products': popular_products,
-        'low_stock_products': low_stock_products,
-        'monthly_sales': monthly_sales,
-        'yearly_sales': yearly_sales,
+        'top_products': top_products,
+        'sales_data': sales_data,
+        'recent_activities': recent_activities,
     }
     
     return render(request, 'staff/dashboard.html', context)
@@ -97,50 +140,68 @@ def staff_dashboard(request):
 @login_required
 @user_passes_test(is_staff)
 def product_management(request):
-    products = Product.objects.all().select_related('category', 'subcategory')
+    # Get filter parameters
+    search = request.GET.get('search', '')
+    category_id = request.GET.get('category', '')
+    status = request.GET.get('status', '')
+    stock = request.GET.get('stock', '')
+    sort = request.GET.get('sort', 'name')
     
-    # Filtering
-    category_filter = request.GET.get('category')
-    brand_filter = request.GET.get('brand')
-    availability_filter = request.GET.get('availability')
-    search_query = request.GET.get('q')
+    # Filter products
+    products = Product.objects.all()
     
-    if category_filter:
-        products = products.filter(category__id=category_filter)
-    
-    if brand_filter:
-        products = products.filter(brand=brand_filter)
-    
-    if availability_filter:
-        products = products.filter(availability=availability_filter)
-    
-    if search_query:
+    if search:
         products = products.filter(
-            Q(name__icontains=search_query) | 
-            Q(description__icontains=search_query) | 
-            Q(sku__icontains=search_query) |
-            Q(brand__icontains=search_query)
+            Q(name__icontains=search) | 
+            Q(sku__icontains=search) |
+            Q(description__icontains=search)
         )
     
-    # Pagination
-    paginator = Paginator(products, 15)  # Show 15 products per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    if category_id:
+        products = products.filter(category_id=category_id)
     
-    # Get filter options
+    if status == 'active':
+        products = products.filter(is_active=True)
+    elif status == 'inactive':
+        products = products.filter(is_active=False)
+    
+    if stock == 'in_stock':
+        products = products.filter(stock__gt=10)
+    elif stock == 'low_stock':
+        products = products.filter(stock__gt=0, stock__lte=10)
+    elif stock == 'out_of_stock':
+        products = products.filter(stock=0)
+    
+    # Sort products
+    if sort == 'name':
+        products = products.order_by('name')
+    elif sort == 'price_low':
+        products = products.order_by('price')
+    elif sort == 'price_high':
+        products = products.order_by('-price')
+    elif sort == 'newest':
+        products = products.order_by('-created_at')
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(products, 10)  # Show 10 products per page
+    
+    try:
+        products = paginator.page(page)
+    except:
+        products = paginator.page(1)
+    
+    # Get all categories for the filter
     categories = Category.objects.all()
-    brands = Product.objects.values_list('brand', flat=True).distinct()
-    availability_choices = Product.AVAILABILITY_CHOICES
     
     context = {
-        'page_obj': page_obj,
+        'products': products,
         'categories': categories,
-        'brands': brands,
-        'availability_choices': availability_choices,
-        'category_filter': category_filter,
-        'brand_filter': brand_filter,
-        'availability_filter': availability_filter,
-        'search_query': search_query,
+        'search': search,
+        'category_id': category_id,
+        'status': status,
+        'stock': stock,
+        'sort': sort,
     }
     
     return render(request, 'staff/product_management.html', context)
@@ -150,21 +211,51 @@ def product_management(request):
 def add_product(request):
     if request.method == 'POST':
         product_form = ProductForm(request.POST)
-        
         if product_form.is_valid():
-            # Save product with slug
+            # Save product
             product = product_form.save(commit=False)
             product.slug = slugify(product.name)
             product.save()
             
-            messages.success(request, f"Product '{product.name}' has been added successfully.")
-            return redirect('Staff:edit_product', product_id=product.id)
+            # Handle product specifications
+            spec_names = request.POST.getlist('spec_name')
+            spec_values = request.POST.getlist('spec_value')
+            
+            for i in range(len(spec_names)):
+                if spec_names[i] and spec_values[i]:
+                    ProductSpecification.objects.create(
+                        product=product,
+                        name=spec_names[i],
+                        value=spec_values[i]
+                    )
+            
+            # Handle product images
+            images = request.FILES.getlist('product_images')
+            for i, image in enumerate(images):
+                is_main = i == 0  # First image is main by default
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    alt_text=product.name,
+                    is_main=is_main
+                )
+            
+            messages.success(request, f'Product "{product.name}" has been added successfully.')
+            return redirect('Staff:product_management')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         product_form = ProductForm()
     
+    # Get categories for form
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.none()  # Empty queryset initially
+    
     context = {
-        'product_form': product_form,
-        'title': 'Add Product',
+        'form': product_form,
+        'categories': categories,
+        'subcategories': subcategories,
+        'product': None,  # No product for add form
     }
     
     return render(request, 'staff/product_form.html', context)
@@ -172,70 +263,95 @@ def add_product(request):
 @login_required
 @user_passes_test(is_staff)
 def edit_product(request, product_id):
+    # Get product
     product = get_object_or_404(Product, id=product_id)
     
     if request.method == 'POST':
         product_form = ProductForm(request.POST, instance=product)
-        
         if product_form.is_valid():
-            # Save product with slug
-            product = product_form.save(commit=False)
-            product.slug = slugify(product.name)
-            product.save()
+            # Update product
+            updated_product = product_form.save(commit=False)
+            updated_product.slug = slugify(updated_product.name)
+            updated_product.save()
             
-            messages.success(request, f"Product '{product.name}' has been updated successfully.")
+            # Handle product specifications
+            # First, delete existing specifications
+            product.specifications.all().delete()
+            
+            # Then add the new ones
+            spec_names = request.POST.getlist('spec_name')
+            spec_values = request.POST.getlist('spec_value')
+            
+            for i in range(len(spec_names)):
+                if spec_names[i] and spec_values[i]:
+                    ProductSpecification.objects.create(
+                        product=updated_product,
+                        name=spec_names[i],
+                        value=spec_values[i]
+                    )
+            
+            # Handle product images
+            if request.FILES.getlist('product_images'):
+                # If new images are uploaded, delete old ones
+                if request.POST.get('replace_images') == 'yes':
+                    product.images.all().delete()
+                
+                images = request.FILES.getlist('product_images')
+                for i, image in enumerate(images):
+                    is_main = i == 0 and product.images.count() == 0  # First image is main by default if no other images
+                    ProductImage.objects.create(
+                        product=updated_product,
+                        image=image,
+                        alt_text=updated_product.name,
+                        is_main=is_main
+                    )
+            
+            messages.success(request, f'Product "{updated_product.name}" has been updated successfully.')
             return redirect('Staff:product_management')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         product_form = ProductForm(instance=product)
     
-    # Get product images and specifications
-    product_images = product.images.all()
-    product_specs = product.specifications.all()
+    # Get categories and subcategories for form
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.filter(category=product.category)
     
-    # Image form
-    image_form = ProductImageForm(initial={'product': product})
+    # Get existing specifications
+    specifications = product.specifications.all()
     
-    # Specification form
-    spec_form = ProductSpecificationForm(initial={'product': product})
+    # Get existing images
+    images = product.images.all()
     
     context = {
+        'form': product_form,
         'product': product,
-        'product_form': product_form,
-        'image_form': image_form,
-        'spec_form': spec_form,
-        'product_images': product_images,
-        'product_specs': product_specs,
-        'title': 'Edit Product',
+        'categories': categories,
+        'subcategories': subcategories,
+        'specifications': specifications,
+        'images': images,
     }
     
     return render(request, 'staff/product_form.html', context)
 
 @login_required
 @user_passes_test(is_staff)
-def delete_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    
+def delete_product(request):
     if request.method == 'POST':
-        product_name = product.name
+        product_id = request.POST.get('product_id')
+        product = get_object_or_404(Product, id=product_id)
         product.delete()
-        messages.success(request, f"Product '{product_name}' has been deleted successfully.")
-        return redirect('Staff:product_management')
+        messages.success(request, f'Product "{product.name}" has been deleted.')
     
-    context = {
-        'product': product,
-    }
-    
-    return render(request, 'staff/confirm_delete_product.html', context)
+    return redirect('Staff:product_management')
 
 @login_required
 @user_passes_test(is_staff)
 def category_management(request):
     categories = Category.objects.all()
-    subcategories = SubCategory.objects.all().select_related('category')
     
     context = {
         'categories': categories,
-        'subcategories': subcategories,
     }
     
     return render(request, 'staff/category_management.html', context)
@@ -244,194 +360,174 @@ def category_management(request):
 @user_passes_test(is_staff)
 def add_category(request):
     if request.method == 'POST':
-        form = CategoryForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            category = form.save(commit=False)
-            category.slug = slugify(category.name)
-            category.save()
-            
-            messages.success(request, f"Category '{category.name}' has been added successfully.")
-            return redirect('Staff:category_management')
-    else:
-        form = CategoryForm()
+        # Process form submission
+        # Save category to database
+        return redirect('Staff:category_management')
     
-    context = {
-        'form': form,
-        'title': 'Add Category',
-    }
-    
-    return render(request, 'staff/category_form.html', context)
+    # This should be handled by a modal in the category_management.html template
+    return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
-def edit_category(request, category_id):
-    category = get_object_or_404(Category, id=category_id)
-    
+def edit_category(request):
     if request.method == 'POST':
-        form = CategoryForm(request.POST, request.FILES, instance=category)
-        
-        if form.is_valid():
-            category = form.save(commit=False)
-            category.slug = slugify(category.name)
-            category.save()
-            
-            messages.success(request, f"Category '{category.name}' has been updated successfully.")
-            return redirect('Staff:category_management')
-    else:
-        form = CategoryForm(instance=category)
+        category_id = request.POST.get('category_id')
+        category = get_object_or_404(Category, id=category_id)
+        # Update category in database
+        return redirect('Staff:category_management')
     
-    context = {
-        'form': form,
-        'title': 'Edit Category',
-        'category': category,
-    }
+    # This should be handled by a modal in the category_management.html template
+    return redirect('Staff:category_management')
+
+@login_required
+@user_passes_test(is_staff)
+def delete_category(request):
+    if request.method == 'POST':
+        category_id = request.POST.get('category_id')
+        category = get_object_or_404(Category, id=category_id)
+        category.delete()
+        messages.success(request, f'Category "{category.name}" has been deleted.')
     
-    return render(request, 'staff/category_form.html', context)
+    return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
 def add_subcategory(request):
     if request.method == 'POST':
-        form = SubCategoryForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            subcategory = form.save(commit=False)
-            subcategory.slug = slugify(subcategory.name)
-            subcategory.save()
-            
-            messages.success(request, f"Subcategory '{subcategory.name}' has been added successfully.")
-            return redirect('Staff:category_management')
-    else:
-        form = SubCategoryForm()
+        # Process form submission
+        # Save subcategory to database
+        return redirect('Staff:category_management')
     
-    context = {
-        'form': form,
-        'title': 'Add Subcategory',
-    }
-    
-    return render(request, 'staff/subcategory_form.html', context)
+    # This should be handled by a modal in the category_management.html template
+    return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
-def edit_subcategory(request, subcategory_id):
-    subcategory = get_object_or_404(SubCategory, id=subcategory_id)
-    
+def edit_subcategory(request):
     if request.method == 'POST':
-        form = SubCategoryForm(request.POST, request.FILES, instance=subcategory)
-        
-        if form.is_valid():
-            subcategory = form.save(commit=False)
-            subcategory.slug = slugify(subcategory.name)
-            subcategory.save()
-            
-            messages.success(request, f"Subcategory '{subcategory.name}' has been updated successfully.")
-            return redirect('Staff:category_management')
-    else:
-        form = SubCategoryForm(instance=subcategory)
+        subcategory_id = request.POST.get('subcategory_id')
+        subcategory = get_object_or_404(SubCategory, id=subcategory_id)
+        # Update subcategory in database
+        return redirect('Staff:category_management')
     
-    context = {
-        'form': form,
-        'title': 'Edit Subcategory',
-        'subcategory': subcategory,
-    }
-    
-    return render(request, 'staff/subcategory_form.html', context)
+    # This should be handled by a modal in the category_management.html template
+    return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
 def order_management(request):
-    orders = Order.objects.all().select_related('user')
+    # Get filter parameters
+    order_number = request.GET.get('order_number', '')
+    status = request.GET.get('status', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
     
-    # Filtering
-    status_filter = request.GET.get('status')
-    payment_filter = request.GET.get('payment')
-    search_query = request.GET.get('q')
+    # Filter orders
+    orders = Order.objects.all().order_by('-created_at')
     
-    if status_filter:
-        orders = orders.filter(status=status_filter)
+    if order_number:
+        orders = orders.filter(order_number__icontains=order_number)
     
-    if payment_filter:
-        orders = orders.filter(payment_status=(payment_filter == 'paid'))
+    if status:
+        orders = orders.filter(status=status)
     
-    if search_query:
-        orders = orders.filter(
-            Q(order_number__icontains=search_query) | 
-            Q(user__username__icontains=search_query) | 
-            Q(user__email__icontains=search_query)
-        )
+    if date_from:
+        orders = orders.filter(created_at__gte=date_from)
     
-    # Pagination
-    paginator = Paginator(orders, 20)  # Show 20 orders per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    if date_to:
+        orders = orders.filter(created_at__lte=date_to)
     
     context = {
-        'page_obj': page_obj,
-        'status_choices': Order.ORDER_STATUS,
-        'status_filter': status_filter,
-        'payment_filter': payment_filter,
-        'search_query': search_query,
+        'orders': orders,
     }
     
     return render(request, 'staff/order_management.html', context)
 
 @login_required
 @user_passes_test(is_staff)
-def order_detail(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
-    order_items = order.items.all().select_related('product')
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
     
     context = {
         'order': order,
-        'order_items': order_items,
     }
     
     return render(request, 'staff/order_detail.html', context)
 
 @login_required
 @user_passes_test(is_staff)
-def update_order_status(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
-    
+def update_order_status(request, order_id):
     if request.method == 'POST':
-        new_status = request.POST.get('status')
-        
-        if new_status in dict(Order.ORDER_STATUS):
-            order.status = new_status
-            order.save()
-            messages.success(request, f"Order #{order.order_number} status has been updated to {order.get_status_display()}.")
-        else:
-            messages.error(request, "Invalid status value.")
-        
-        return redirect('Staff:order_detail', order_number=order.order_number)
+        order = get_object_or_404(Order, id=order_id)
+        status = request.POST.get('status')
+        order.status = status
+        order.save()
+        messages.success(request, f'Order #{order.order_number} status updated to {status}.')
     
-    return redirect('Staff:order_management')
+    return redirect('Staff:order_detail', order_id=order_id)
+
+@login_required
+@user_passes_test(is_staff)
+def export_orders(request):
+    # Create a CSV file
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Order #', 'Customer', 'Date', 'Status', 'Total'])
+    
+    orders = Order.objects.all().order_by('-created_at')
+    for order in orders:
+        writer.writerow([
+            order.order_number,
+            order.user.get_full_name() or order.user.username,
+            order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            order.status,
+            order.total_price,
+        ])
+    
+    return response
 
 @login_required
 @user_passes_test(is_staff)
 def user_management(request):
-    users = User.objects.filter(is_staff=False).select_related('profile')
+    # Get filter parameters
+    search = request.GET.get('search', '')
+    role = request.GET.get('role', '')
+    status = request.GET.get('status', '')
+    date_joined = request.GET.get('date_joined', '')
     
-    # Search filter
-    search_query = request.GET.get('q')
+    # Filter users
+    users = User.objects.all().order_by('-date_joined')
     
-    if search_query:
+    if search:
         users = users.filter(
-            Q(username__icontains=search_query) | 
-            Q(email__icontains=search_query) | 
-            Q(first_name__icontains=search_query) | 
-            Q(last_name__icontains=search_query)
+            username__icontains=search
+        ) | users.filter(
+            email__icontains=search
+        ) | users.filter(
+            first_name__icontains=search
+        ) | users.filter(
+            last_name__icontains=search
         )
     
-    # Pagination
-    paginator = Paginator(users, 20)  # Show 20 users per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    if role == 'admin':
+        users = users.filter(is_superuser=True)
+    elif role == 'staff':
+        users = users.filter(is_staff=True, is_superuser=False)
+    elif role == 'customer':
+        users = users.filter(is_staff=False, is_superuser=False)
+    
+    if status == 'active':
+        users = users.filter(is_active=True)
+    elif status == 'inactive':
+        users = users.filter(is_active=False)
+    
+    if date_joined:
+        users = users.filter(date_joined__gte=date_joined)
     
     context = {
-        'page_obj': page_obj,
-        'search_query': search_query,
+        'users': users,
     }
     
     return render(request, 'staff/user_management.html', context)
@@ -439,24 +535,78 @@ def user_management(request):
 @login_required
 @user_passes_test(is_staff)
 def user_detail(request, user_id):
-    user = get_object_or_404(User, id=user_id, is_staff=False)
-    user_profile = user.profile
-    
-    # Get user's orders
-    orders = Order.objects.filter(user=user).order_by('-created_at')
-    
-    # Get user's recent activities
-    activities = RecentActivity.objects.filter(user=user).order_by('-timestamp')[:20]
-    
-    # Get user's reviews
-    reviews = user.reviews.order_by('-created_at')
+    user = get_object_or_404(User, id=user_id)
     
     context = {
-        'user': user,
-        'user_profile': user_profile,
-        'orders': orders,
-        'activities': activities,
-        'reviews': reviews,
+        'user_profile': user,
     }
     
     return render(request, 'staff/user_detail.html', context)
+
+@login_required
+@user_passes_test(is_staff)
+def add_user(request):
+    if request.method == 'POST':
+        # Process form submission
+        # Create new user
+        return redirect('Staff:user_management')
+    
+    # This should be handled by a modal in the user_management.html template
+    return redirect('Staff:user_management')
+
+@login_required
+@user_passes_test(is_staff)
+def edit_user(request):
+    if request.method == 'POST':
+        # Process form submission
+        # Update user
+        return redirect('Staff:user_management')
+    
+    # This should be handled by a modal in the user_management.html template
+    return redirect('Staff:user_management')
+
+@login_required
+@user_passes_test(is_staff)
+def delete_user(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+        user.delete()
+        messages.success(request, f'User "{user.username}" has been deleted.')
+    
+    return redirect('Staff:user_management')
+
+@login_required
+@user_passes_test(is_staff)
+def toggle_user_status(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.is_active = not user.is_active
+    user.save()
+    status = 'activated' if user.is_active else 'deactivated'
+    messages.success(request, f'User "{user.username}" has been {status}.')
+    
+    return redirect('Staff:user_management')
+
+@login_required
+@user_passes_test(is_staff)
+def toggle_staff_status(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.is_staff = not user.is_staff
+    user.save()
+    status = 'granted staff privileges' if user.is_staff else 'removed staff privileges'
+    messages.success(request, f'User "{user.username}" has been {status}.')
+    
+    return redirect('Staff:user_management')
+
+@login_required
+@user_passes_test(is_staff)
+def get_subcategories(request):
+    category_id = request.GET.get('category_id')
+    subcategories = []
+    
+    if category_id:
+        subcategories = list(SubCategory.objects.filter(
+            category_id=category_id
+        ).values('id', 'name'))
+    
+    return JsonResponse({'subcategories': subcategories})

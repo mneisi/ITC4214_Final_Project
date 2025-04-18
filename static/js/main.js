@@ -5,6 +5,50 @@ $(document).ready(function() {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
     
+    // Theme toggling functionality
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const htmlElement = document.documentElement;
+    
+    // Check for saved theme preference or use system preference
+    const getInitialTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            return savedTheme;
+        }
+        
+        // Check if user has system dark mode preference
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    };
+    
+    // Apply theme
+    const applyTheme = (theme) => {
+        htmlElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        // Update toggle button icon
+        if (themeToggleBtn) {
+            if (theme === 'dark') {
+                themeToggleBtn.querySelector('i').className = 'fas fa-sun';
+                themeToggleBtn.setAttribute('title', 'Switch to light mode');
+            } else {
+                themeToggleBtn.querySelector('i').className = 'fas fa-moon';
+                themeToggleBtn.setAttribute('title', 'Switch to dark mode');
+            }
+        }
+    };
+    
+    // Initialize theme
+    applyTheme(getInitialTheme());
+    
+    // Toggle theme when button is clicked
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+    }
+    
     // Navbar active link
     const currentLocation = location.pathname;
     const navLinks = document.querySelectorAll('.navbar-nav .nav-link');

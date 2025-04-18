@@ -1,0 +1,523 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Category Management - SoundSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-card {
+        background-color: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .category-card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        position: relative;
+    }
+    
+    .category-card-body {
+        padding: 1.5rem;
+    }
+    
+    .category-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        background-color: var(--gray-100);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .category-actions {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+    
+    .subcategory-badge {
+        padding: 0.4rem 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        background-color: var(--gray-100);
+        border-radius: var(--radius-md);
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+    
+    .subcategory-badge:hover {
+        background-color: var(--gray-200);
+    }
+    
+    .add-category-card {
+        background-color: var(--gray-50);
+        border: 2px dashed var(--gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 320px;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .add-category-card:hover {
+        background-color: var(--gray-100);
+        border-color: var(--primary);
+        transform: translateY(-5px);
+    }
+    
+    .add-category-icon {
+        font-size: 2.5rem;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+    }
+    
+    .category-count {
+        display: inline-block;
+        background-color: var(--primary-100);
+        color: var(--primary-700);
+        border-radius: 30px;
+        padding: 0.2rem 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .category-stat {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .category-stat:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Page Header -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-0">Category Management</h1>
+                <p class="text-muted">Manage product categories and subcategories</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="fas fa-plus me-2"></i>Add Category
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Filter and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Search categories" name="search" value="{{ request.GET.search|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="sort">
+                        <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                        <option value="products" {% if request.GET.sort == 'products' %}selected{% endif %}>Sort by Product Count</option>
+                        <option value="created" {% if request.GET.sort == 'created' %}selected{% endif %}>Sort by Created Date</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Categories -->
+    <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-4">
+            <div class="category-card">
+                <div class="category-card-header">
+                    <div class="d-flex">
+                        {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-image me-3">
+                        {% else %}
+                        <div class="category-image me-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-music fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-1">{{ category.name }}</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted small">{{ category.products.count }} Products</span>
+                                <span class="mx-2">•</span>
+                                <span class="text-muted small">{{ category.subcategory_set.count }} Subcategories</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category-actions">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#editCategoryModal" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}" data-category-description="{{ category.description }}">
+                                        <i class="fas fa-edit me-2 text-primary"></i>Edit Category
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#addSubcategoryModal" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}">
+                                        <i class="fas fa-plus-circle me-2 text-success"></i>Add Subcategory
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deleteCategoryModal" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}">
+                                        <i class="fas fa-trash me-2"></i>Delete Category
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card-body">
+                    <div class="mb-3">
+                        <h6 class="mb-2">Description</h6>
+                        <p class="text-muted mb-0">{{ category.description|default:"No description available." }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="mb-2">Subcategories</h6>
+                        {% if category.subcategory_set.all %}
+                        <div>
+                            {% for subcategory in category.subcategory_set.all %}
+                            <span class="subcategory-badge">
+                                {{ subcategory.name }}
+                                <button class="btn btn-sm p-0 ms-1" style="line-height: 1;" data-bs-toggle="modal" data-bs-target="#editSubcategoryModal" data-subcategory-id="{{ subcategory.id }}" data-subcategory-name="{{ subcategory.name }}" data-category-id="{{ category.id }}">
+                                    <i class="fas fa-pen text-muted small"></i>
+                                </button>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No subcategories added yet.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h6 class="mb-2">Statistics</h6>
+                        <div class="category-stat">
+                            <span>Active Products</span>
+                            <span class="fw-bold">{{ category.active_products_count }}</span>
+                        </div>
+                        <div class="category-stat">
+                            <span>Total Sales</span>
+                            <span class="fw-bold">${{ category.total_sales|default:"0.00" }}</span>
+                        </div>
+                        <div class="category-stat">
+                            <span>Date Added</span>
+                            <span class="fw-bold">{{ category.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Add Category Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="category-card add-category-card" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <div>
+                    <div class="add-category-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <h5>Add New Category</h5>
+                    <p class="text-muted mb-0">Create a new product category</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-5" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'Staff:add_category' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="category_name" class="form-label">Category Name*</label>
+                        <input type="text" class="form-control" id="category_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="category_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category_image" class="form-label">Category Image</label>
+                        <input type="file" class="form-control" id="category_image" name="image" accept="image/*">
+                        <div class="form-text">Recommended size: 300x300px</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'Staff:edit_category' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="category_id" id="edit_category_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_category_name" class="form-label">Category Name*</label>
+                        <input type="text" class="form-control" id="edit_category_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_category_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_category_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_category_image" class="form-label">Category Image</label>
+                        <input type="file" class="form-control" id="edit_category_image" name="image" accept="image/*">
+                        <div class="form-text">Recommended size: 300x300px. Leave empty to keep current image.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Subcategory Modal -->
+<div class="modal fade" id="addSubcategoryModal" tabindex="-1" aria-labelledby="addSubcategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSubcategoryModalLabel">Add Subcategory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'Staff:add_subcategory' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="category_id" id="subcategory_category_id">
+                <div class="modal-body">
+                    <p>Adding subcategory to: <strong id="subcategory_category_name"></strong></p>
+                    <div class="mb-3">
+                        <label for="subcategory_name" class="form-label">Subcategory Name*</label>
+                        <input type="text" class="form-control" id="subcategory_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subcategory_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="subcategory_description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Subcategory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Subcategory Modal -->
+<div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSubcategoryModalLabel">Edit Subcategory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'Staff:edit_subcategory' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="subcategory_id" id="edit_subcategory_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_subcategory_name" class="form-label">Subcategory Name*</label>
+                        <input type="text" class="form-control" id="edit_subcategory_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_subcategory_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_subcategory_description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Subcategory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Category Modal -->
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCategoryModalLabel">Delete Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the category "<span id="delete_category_name"></span>"?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>This action cannot be undone and will also delete all associated subcategories. Products in this category will be left without a category.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'Staff:delete_category' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="category_id" id="delete_category_id">
+                    <button type="submit" class="btn btn-danger">Delete Category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit Category Modal
+        const editCategoryModal = document.getElementById('editCategoryModal');
+        if (editCategoryModal) {
+            editCategoryModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const categoryId = button.getAttribute('data-category-id');
+                const categoryName = button.getAttribute('data-category-name');
+                const categoryDescription = button.getAttribute('data-category-description');
+                
+                document.getElementById('edit_category_id').value = categoryId;
+                document.getElementById('edit_category_name').value = categoryName;
+                document.getElementById('edit_category_description').value = categoryDescription || '';
+            });
+        }
+        
+        // Add Subcategory Modal
+        const addSubcategoryModal = document.getElementById('addSubcategoryModal');
+        if (addSubcategoryModal) {
+            addSubcategoryModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const categoryId = button.getAttribute('data-category-id');
+                const categoryName = button.getAttribute('data-category-name');
+                
+                document.getElementById('subcategory_category_id').value = categoryId;
+                document.getElementById('subcategory_category_name').textContent = categoryName;
+            });
+        }
+        
+        // Edit Subcategory Modal
+        const editSubcategoryModal = document.getElementById('editSubcategoryModal');
+        if (editSubcategoryModal) {
+            editSubcategoryModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const subcategoryId = button.getAttribute('data-subcategory-id');
+                const subcategoryName = button.getAttribute('data-subcategory-name');
+                
+                document.getElementById('edit_subcategory_id').value = subcategoryId;
+                document.getElementById('edit_subcategory_name').value = subcategoryName;
+                
+                // You might want to fetch additional data like description using AJAX
+                // For now, we're just setting the name
+            });
+        }
+        
+        // Delete Category Modal
+        const deleteCategoryModal = document.getElementById('deleteCategoryModal');
+        if (deleteCategoryModal) {
+            deleteCategoryModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const categoryId = button.getAttribute('data-category-id');
+                const categoryName = button.getAttribute('data-category-name');
+                
+                document.getElementById('delete_category_id').value = categoryId;
+                document.getElementById('delete_category_name').textContent = categoryName;
+            });
+        }
+    });
+</script>
+{% endblock %} 

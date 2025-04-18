@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,23 +11,23 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Google Fonts - Poppins -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/modern.css">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{% url 'Home:home' %}">
-                <i class="fas fa-headphones-alt me-2"></i>SoundSphere
+                <i class="fas fa-headphones-alt"></i>SoundSphere
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,10 +36,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'Home:home' %}">Home</a>
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'Home:home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'Store:product_list' %}">Products</a>
+                        <a class="nav-link {% if '/products/' in request.path %}active{% endif %}" href="{% url 'Store:product_list' %}">Products</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" 
@@ -61,20 +61,23 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     <!-- Search Form -->
-                    <form class="d-flex me-3" action="{% url 'Store:search_products' %}" method="get">
-                        <div class="input-group">
+                    <form class="search-form d-flex me-3" action="{% url 'Store:search_products' %}" method="get">
+                        <div class="position-relative">
+                            <i class="fas fa-search search-icon"></i>
                             <input class="form-control" type="search" name="q" placeholder="Search products..." aria-label="Search">
-                            <button class="btn btn-light" type="submit">
-                                <i class="fas fa-search text-primary"></i>
-                            </button>
                         </div>
                     </form>
                     
+                    <!-- Theme Toggle -->
+                    <div id="theme-toggle" class="theme-toggle" title="Switch to dark mode">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    
                     <!-- Cart Button -->
-                    <a href="{% url 'ShoppingCart:view_cart' %}" class="btn btn-outline-light position-relative me-2">
+                    <a href="{% url 'ShoppingCart:view_cart' %}" class="btn btn-outline position-relative me-3">
                         <i class="fas fa-shopping-cart"></i>
                         {% if request.user.is_authenticated and request.user.cart.total_items > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary cart-count">
                             {{ request.user.cart.total_items }}
                         </span>
                         {% endif %}
@@ -83,7 +86,7 @@
                     <!-- User Menu -->
                     {% if request.user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" 
+                        <button class="btn btn-outline dropdown-toggle" type="button" id="userDropdown" 
                                 data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user me-1"></i>{{ request.user.username }}
                         </button>
@@ -130,10 +133,10 @@
                         </ul>
                     </div>
                     {% else %}
-                    <a href="{% url 'Authentication:login' %}" class="btn btn-outline-light btn-sm me-2">
+                    <a href="{% url 'Authentication:login' %}" class="btn btn-outline me-2">
                         <i class="fas fa-sign-in-alt me-1"></i>Login
                     </a>
-                    <a href="{% url 'Authentication:register' %}" class="btn btn-light btn-sm">
+                    <a href="{% url 'Authentication:register' %}" class="btn btn-primary">
                         <i class="fas fa-user-plus me-1"></i>Register
                     </a>
                     {% endif %}
@@ -144,9 +147,9 @@
     
     <!-- Alert Messages -->
     {% if messages %}
-    <div class="container mt-3">
+    <div class="container mt-4">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -158,13 +161,13 @@
     {% block body %}{% endblock %}
     
     <!-- Footer -->
-    <footer class="text-white py-5 mt-5">
+    <footer>
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>SoundSphere</h5>
-                    <p class="text-muted">Your premier destination for audio equipment and accessories.</p>
-                    <div class="social-icons mt-3">
+                    <h5 class="border-bottom-gradient">SoundSphere</h5>
+                    <p>Your premier destination for audio equipment and accessories.</p>
+                    <div class="social-icons mt-4">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
@@ -172,8 +175,8 @@
                     </div>
                 </div>
                 <div class="col-md-2 mb-4 mb-md-0">
-                    <h5>Shop</h5>
-                    <ul class="list-unstyled">
+                    <h5 class="border-bottom-gradient">Shop</h5>
+                    <ul>
                         <li><a href="{% url 'Store:product_list' %}">All Products</a></li>
                         <li><a href="#">Headphones</a></li>
                         <li><a href="#">Speakers</a></li>
@@ -181,8 +184,8 @@
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4 mb-md-0">
-                    <h5>Support</h5>
-                    <ul class="list-unstyled">
+                    <h5 class="border-bottom-gradient">Support</h5>
+                    <ul>
                         <li><a href="#">Contact Us</a></li>
                         <li><a href="#">FAQs</a></li>
                         <li><a href="#">Shipping Info</a></li>
@@ -190,25 +193,27 @@
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <h5>Newsletter</h5>
-                    <p class="text-muted">Subscribe to get updates on new products and special offers.</p>
+                    <h5 class="border-bottom-gradient">Newsletter</h5>
+                    <p>Subscribe to get updates on new products and special offers.</p>
                     <div class="input-group mb-3">
                         <input type="email" class="form-control" placeholder="Enter your email" aria-label="Email">
-                        <button class="btn btn-light" type="button">Subscribe</button>
+                        <button class="btn btn-primary" type="button">Subscribe</button>
                     </div>
                 </div>
             </div>
-            <hr class="my-4 opacity-25">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0 text-muted">&copy; {% now "Y" %} SoundSphere. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0 text-muted">
-                        <a href="#" class="me-3">Privacy Policy</a>
-                        <a href="#" class="me-3">Terms of Service</a>
-                        <a href="#">Sitemap</a>
-                    </p>
+            
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="mb-0">&copy; {% now "Y" %} SoundSphere. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <p class="mb-0">
+                            <a href="#" class="me-3">Privacy Policy</a>
+                            <a href="#" class="me-3">Terms of Service</a>
+                            <a href="#">Sitemap</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
