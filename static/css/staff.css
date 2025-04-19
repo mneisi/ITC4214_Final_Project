@@ -1,0 +1,296 @@
+/**
+ * SoundSphere Staff Pages Stylesheet
+ * Common styles for all staff/admin pages with dark mode support
+ */
+
+/* Common Card Styles */
+.admin-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Filter Cards */
+.filter-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    height: 100%;
+}
+
+/* Table Styling */
+.table th {
+    background-color: var(--table-header-bg);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.table td {
+    border-color: var(--border-color);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: var(--green-100);
+    color: var(--green-700);
+}
+
+.status-inactive {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.stock-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.stock-in {
+    background-color: var(--green-100);
+    color: var(--green-700);
+}
+
+.stock-low {
+    background-color: var(--yellow-100);
+    color: var(--yellow-700);
+}
+
+.stock-out {
+    background-color: var(--red-100);
+    color: var(--red-600);
+}
+
+/* Product Images */
+.product-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+/* Form Elements */
+.form-control, .form-select {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-tertiary);
+    border-color: var(--primary);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+}
+
+.form-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Stats Cards */
+.stats-card {
+    background-color: var(--stats-card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Chart Containers */
+.chart-container {
+    background-color: var(--chart-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(to right, var(--primary-light), var(--primary));
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+/* Quick Action Cards */
+.quick-action-card {
+    background-color: var(--quick-actions-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.quick-action:last-child {
+    border-bottom: none;
+}
+
+.quick-action:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Stats Icon */
+.stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.bg-primary-soft {
+    background-color: var(--primary-100);
+    color: var(--primary-700);
+}
+
+.bg-success-soft {
+    background-color: var(--green-100);
+    color: var(--green-700);
+}
+
+.bg-info-soft {
+    background-color: var(--blue-100);
+    color: var(--blue-700);
+}
+
+.bg-warning-soft {
+    background-color: var(--yellow-100);
+    color: var(--yellow-700);
+}
+
+/* Sales Chart Container */
+.sales-chart-container {
+    height: 350px;
+    position: relative;
+    width: 100%;
+}
+
+/* Chart Header */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chart-title {
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 0;
+    color: var(--text-primary);
+}
+
+/* Activity Items */
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Quick Action Icons and Content */
+.quick-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+}
+
+.quick-action-content {
+    flex: 1;
+}
+
+.quick-action-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.quick-action-description {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0;
+} 

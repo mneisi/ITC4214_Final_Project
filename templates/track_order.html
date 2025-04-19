@@ -1,0 +1,417 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Track Your Order - SoundSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="fw-bold">Track Your Order</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'Home:home' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Order Tracking</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <!-- Order Tracking Form -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-5">
+                    <h2 class="card-title h3 mb-4">Enter Your Order Details</h2>
+                    <form id="order-tracking-form">
+                        <div class="mb-4">
+                            <label for="order-number" class="form-label">Order Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="order-number" placeholder="e.g. ORD-123456789" required>
+                            <div class="form-text">Find this on your order confirmation email</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" placeholder="Your email address" required>
+                            <div class="form-text">Email address used when placing the order</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="track-button">
+                            Track Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h5 mb-3">Need Help?</h3>
+                        <p class="mb-3">If you're having trouble tracking your order or have questions about your delivery, our customer service team is here to help.</p>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-phone-alt me-2 text-primary"></i>
+                            <span>Call us at <strong>1-800-SOUND-88</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <span>Email us at <a href="mailto:support@soundsphere.com">support@soundsphere.com</a></span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-comment-dots me-2 text-primary"></i>
+                            <span>Chat with us <a href="#" class="text-primary">Live Chat</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status Display -->
+        <div class="col-lg-6">
+            <div id="tracking-results" class="d-none">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h4 mb-0">Order #<span id="display-order-number">ORD-123456789</span></h3>
+                            <span class="badge bg-success" id="order-status">Delivered</span>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">Order Date</p>
+                                <p class="mb-0" id="order-date">November 15, 2023</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">Expected Delivery</p>
+                                <p class="mb-0" id="delivery-date">November 22, 2023</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <p class="text-muted mb-1">Shipping Address</p>
+                            <p class="mb-0" id="shipping-address">
+                                John Doe<br>
+                                123 Main Street<br>
+                                Apt 4B<br>
+                                New York, NY 10001<br>
+                                United States
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Timeline -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h4 mb-4">Tracking Timeline</h3>
+                        
+                        <div class="tracking-timeline">
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">Order Confirmed</h4>
+                                    <p class="text-muted mb-0">November 15, 2023 - 2:30 PM</p>
+                                    <p class="small mb-0">Your order has been received and confirmed</p>
+                                </div>
+                            </div>
+                            
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">Order Processed</h4>
+                                    <p class="text-muted mb-0">November 16, 2023 - 10:45 AM</p>
+                                    <p class="small mb-0">Your order has been processed and is being prepared for shipping</p>
+                                </div>
+                            </div>
+                            
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">Order Shipped</h4>
+                                    <p class="text-muted mb-0">November 17, 2023 - 3:15 PM</p>
+                                    <p class="small mb-0">Your order has been shipped via USPS Express</p>
+                                </div>
+                            </div>
+                            
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">In Transit</h4>
+                                    <p class="text-muted mb-0">November 19, 2023 - 8:20 AM</p>
+                                    <p class="small mb-0">Your package is in transit to the destination</p>
+                                </div>
+                            </div>
+                            
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">Out for Delivery</h4>
+                                    <p class="text-muted mb-0">November 21, 2023 - 9:30 AM</p>
+                                    <p class="small mb-0">Your package is out for delivery</p>
+                                </div>
+                            </div>
+                            
+                            <div class="tracking-event completed">
+                                <div class="tracking-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="tracking-content">
+                                    <h4 class="h6 mb-1">Delivered</h4>
+                                    <p class="text-muted mb-0">November 21, 2023 - 2:15 PM</p>
+                                    <p class="small mb-0">Your package has been delivered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body p-4">
+                        <h3 class="h4 mb-4">Order Items</h3>
+                        
+                        <div class="order-item d-flex mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0">
+                                <img src="https://via.placeholder.com/80x80" alt="Product" class="order-item-image">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h4 class="h6 mb-1">SoundSphere Pro Wireless Headphones</h4>
+                                <p class="text-muted small mb-1">Color: Black | Qty: 1</p>
+                                <p class="mb-0 fw-bold">$299.99</p>
+                            </div>
+                        </div>
+                        
+                        <div class="order-item d-flex">
+                            <div class="flex-shrink-0">
+                                <img src="https://via.placeholder.com/80x80" alt="Product" class="order-item-image">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h4 class="h6 mb-1">SoundSphere Carrying Case</h4>
+                                <p class="text-muted small mb-1">Color: Black | Qty: 1</p>
+                                <p class="mb-0 fw-bold">$49.99</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial State -->
+            <div id="tracking-initial" class="text-center py-5">
+                <img src="https://via.placeholder.com/200" alt="Track Order" class="mb-4" onerror="this.src='{% static 'images/track-illustration.svg' %}'">
+                <h2 class="h3 mb-3">Track Your Order</h2>
+                <p class="text-muted mb-0 mx-auto" style="max-width: 500px;">Enter your order number and email address to check the status and location of your package.</p>
+            </div>
+
+            <!-- Not Found State -->
+            <div id="tracking-not-found" class="text-center py-5 d-none">
+                <div class="alert alert-danger mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Order not found. Please check your order number and email address.
+                </div>
+                <img src="https://via.placeholder.com/200" alt="Order Not Found" class="mb-4" onerror="this.src='{% static 'images/not-found-illustration.svg' %}'">
+                <h2 class="h3 mb-3">No Order Found</h2>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">We couldn't find an order matching the details you provided. Please double-check your order number and email address.</p>
+                <button class="btn btn-outline-primary" id="try-again-button">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row mt-5 pt-4">
+        <div class="col-12">
+            <h2 class="h3 mb-4">Frequently Asked Questions</h2>
+            <div class="accordion" id="trackingFaq">
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h3 class="accordion-header" id="headingOne">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            Where can I find my order number?
+                        </button>
+                    </h3>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#trackingFaq">
+                        <div class="accordion-body">
+                            Your order number can be found in the order confirmation email that was sent to you after your purchase. It typically starts with "ORD-" followed by a series of numbers. You can also find your order number in your account dashboard if you made the purchase while logged in.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h3 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            How long will it take to receive my order?
+                        </button>
+                    </h3>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#trackingFaq">
+                        <div class="accordion-body">
+                            Delivery times depend on your location and the shipping method you selected during checkout. Standard shipping typically takes 3-5 business days within the continental United States. Express shipping takes 1-2 business days. International shipping can take 7-14 business days depending on the destination country.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h3 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Can I change my shipping address after placing an order?
+                        </button>
+                    </h3>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#trackingFaq">
+                        <div class="accordion-body">
+                            We can only change the shipping address if the order has not yet been processed. Once an order has been processed or shipped, we cannot modify the shipping address. If you need to change your shipping address, please contact our customer service team as soon as possible at support@soundsphere.com or call 1-800-SOUND-88.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item border-0 shadow-sm">
+                    <h3 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            What should I do if my order is delayed?
+                        </button>
+                    </h3>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#trackingFaq">
+                        <div class="accordion-body">
+                            If your order appears to be delayed beyond the expected delivery date, please first check the tracking information for any updates or notifications. Sometimes there may be weather or logistical delays with the carrier. If the delay extends beyond 2 business days from the expected delivery date with no updates, please contact our customer service team for assistance.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Order Item Images */
+    .order-item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+    
+    /* Tracking Timeline */
+    .tracking-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .tracking-timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 11px;
+        width: 2px;
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+    }
+    
+    .tracking-event {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .tracking-event:last-child {
+        margin-bottom: 0;
+    }
+    
+    .tracking-icon {
+        position: absolute;
+        left: -30px;
+        width: 24px;
+        height: 24px;
+        background-color: var(--bs-light);
+        border: 2px solid rgba(var(--bs-primary-rgb), 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: rgba(var(--bs-primary-rgb), 0.5);
+        z-index: 1;
+    }
+    
+    .tracking-event.completed .tracking-icon {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .tracking-content {
+        padding-left: 15px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 767.98px) {
+        .tracking-timeline {
+            padding-left: 25px;
+        }
+        
+        .tracking-timeline::before {
+            left: 9px;
+        }
+        
+        .tracking-icon {
+            left: -25px;
+            width: 20px;
+            height: 20px;
+            font-size: 0.625rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const trackingForm = document.getElementById('order-tracking-form');
+        const trackButton = document.getElementById('track-button');
+        const trackingResults = document.getElementById('tracking-results');
+        const trackingInitial = document.getElementById('tracking-initial');
+        const trackingNotFound = document.getElementById('tracking-not-found');
+        const tryAgainButton = document.getElementById('try-again-button');
+        
+        // Demo tracking functionality - in a real application this would call an API
+        trackingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderNumber = document.getElementById('order-number').value;
+            const email = document.getElementById('email').value;
+            
+            // Simulate API call with loading state
+            trackButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Tracking...';
+            trackButton.disabled = true;
+            
+            // For demo purposes, show "not found" for specific test values
+            setTimeout(function() {
+                if (orderNumber === 'test-not-found' || email === 'not-found@example.com') {
+                    trackingInitial.classList.add('d-none');
+                    trackingResults.classList.add('d-none');
+                    trackingNotFound.classList.remove('d-none');
+                } else {
+                    // Update display order number
+                    document.getElementById('display-order-number').textContent = orderNumber;
+                    
+                    // Show results
+                    trackingInitial.classList.add('d-none');
+                    trackingResults.classList.remove('d-none');
+                    trackingNotFound.classList.add('d-none');
+                }
+                
+                // Reset button
+                trackButton.innerHTML = 'Track Order';
+                trackButton.disabled = false;
+            }, 1500);
+        });
+        
+        // Try again button
+        tryAgainButton.addEventListener('click', function() {
+            trackingNotFound.classList.add('d-none');
+            trackingInitial.classList.remove('d-none');
+            document.getElementById('order-number').value = '';
+            document.getElementById('email').value = '';
+        });
+    });
+</script>
+{% endblock %} 

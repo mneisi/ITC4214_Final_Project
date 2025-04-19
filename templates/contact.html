@@ -1,0 +1,375 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Contact Us - SoundSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="fw-bold">Contact Us</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'Home:home' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Contact</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row g-5">
+        <!-- Contact Form Column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h3 mb-4">Send Us a Message</h2>
+                    
+                    <form id="contactForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" required>
+                                <div class="invalid-feedback">Please enter your name</div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" required>
+                                <div class="invalid-feedback">Please enter a valid email</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="subject" class="form-label">Subject</label>
+                            <select class="form-select" id="subject" required>
+                                <option value="" selected disabled>Select a subject</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Product Support">Product Support</option>
+                                <option value="Order Status">Order Status</option>
+                                <option value="Returns & Refunds">Returns & Refunds</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Partnership Opportunity">Partnership Opportunity</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a subject</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="5" required></textarea>
+                            <div class="invalid-feedback">Please enter your message</div>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="consent" required>
+                            <label class="form-check-label" for="consent">
+                                I agree to the <a href="#">Privacy Policy</a> and consent to SoundSphere contacting me via email.
+                            </label>
+                            <div class="invalid-feedback">You must agree before submitting</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+                        </div>
+                    </form>
+                    
+                    <div id="formSuccess" class="alert alert-success mt-4" style="display: none;">
+                        <i class="fas fa-check-circle me-2"></i> Your message has been sent successfully! We'll get back to you shortly.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Info Column -->
+        <div class="col-lg-5">
+            <!-- Contact Information Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h3 mb-4">Contact Information</h2>
+                    
+                    <div class="d-flex mb-4">
+                        <div class="contact-icon me-3">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 mb-1">Our Location</h3>
+                            <p class="mb-0">
+                                SoundSphere Headquarters<br>
+                                123 Audio Avenue, Suite 456<br>
+                                San Francisco, CA 94103<br>
+                                United States
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-4">
+                        <div class="contact-icon me-3">
+                            <i class="fas fa-phone-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 mb-1">Phone Numbers</h3>
+                            <p class="mb-1">Customer Support: (800) 555-1234</p>
+                            <p class="mb-1">Sales Inquiries: (800) 555-5678</p>
+                            <p class="mb-0">International: +1 (415) 555-9012</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-4">
+                        <div class="contact-icon me-3">
+                            <i class="fas fa-envelope text-primary"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 mb-1">Email Addresses</h3>
+                            <p class="mb-1">General Inquiries: info@soundsphere.com</p>
+                            <p class="mb-1">Customer Support: support@soundsphere.com</p>
+                            <p class="mb-0">Sales: sales@soundsphere.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex">
+                        <div class="contact-icon me-3">
+                            <i class="fas fa-clock text-primary"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 mb-1">Business Hours</h3>
+                            <p class="mb-1">Monday - Friday: 9:00 AM - 6:00 PM (PST)</p>
+                            <p class="mb-0">Saturday: 10:00 AM - 4:00 PM (PST)</p>
+                            <p class="mb-0">Sunday: Closed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Social Media & Map Card -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h3 class="h5 mb-3">Connect With Us</h3>
+                    
+                    <div class="social-icons mb-4">
+                        <a href="#" class="btn btn-outline-primary rounded-circle me-2" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle me-2" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle me-2" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle me-2" aria-label="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">Our Location</h3>
+                    
+                    <div class="map-container rounded-3 overflow-hidden">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50470.02366478366!2d-122.4721433075908!3d37.757617737386224!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1673887476416!5m2!1sen!2sus" 
+                            width="100%" 
+                            height="250" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQs Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h3 mb-4">Frequently Asked Questions</h2>
+                    
+                    <div class="accordion" id="contactFAQ">
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">
+                                    How can I track my order?
+                                </button>
+                            </h3>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#contactFAQ">
+                                <div class="accordion-body pt-0">
+                                    <p>You can track your order by visiting our <a href="{% url 'order-tracking' %}">Order Tracking</a> page and entering your order number and email address. Your order number can be found in your order confirmation email. Alternatively, if you have an account, you can log in and view your order history and tracking information from your dashboard.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                                    What is your return policy?
+                                </button>
+                            </h3>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#contactFAQ">
+                                <div class="accordion-body pt-0">
+                                    <p>We offer a 30-day return policy for most products. Items must be returned in their original packaging and in unused condition. Some products, such as earbuds and in-ear headphones, may have different return policies for hygiene reasons. For complete details, please visit our Returns & Refunds page or contact our customer support team.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                                    How do I register my product for warranty?
+                                </button>
+                            </h3>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#contactFAQ">
+                                <div class="accordion-body pt-0">
+                                    <p>To register your SoundSphere product for warranty coverage, please visit our Product Registration page and fill out the registration form. You'll need your product's serial number, which can be found on the product packaging or the product itself. Registration must be completed within 30 days of purchase to activate the full warranty.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                    Do you offer international shipping?
+                                </button>
+                            </h3>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#contactFAQ">
+                                <div class="accordion-body pt-0">
+                                    <p>Yes, we ship to over 50 countries worldwide. International shipping rates and delivery times vary by location. Please note that international orders may be subject to import duties and taxes, which are the responsibility of the recipient. For more information on international shipping options and estimated delivery times, please visit our Shipping Information page.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
+                                    How can I apply for a job at SoundSphere?
+                                </button>
+                            </h3>
+                            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#contactFAQ">
+                                <div class="accordion-body pt-0">
+                                    <p>We're always looking for talented individuals to join our team! To view current job openings and apply, please visit our Careers page. If you don't see a position that matches your skills, you can submit a general application for future consideration. We also offer internship programs for students and recent graduates interested in the audio technology industry.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Contact icon styles */
+    .contact-icon {
+        font-size: 1.5rem;
+        min-width: 30px;
+        padding-top: 3px;
+    }
+    
+    /* Social icons */
+    .social-icons .btn {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .social-icons .btn:hover {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    /* Map container */
+    .map-container {
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    /* Accordion styles */
+    .accordion-button {
+        box-shadow: none !important;
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        font-weight: 600;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contactForm');
+        const formSuccess = document.getElementById('formSuccess');
+        
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get all form inputs
+            const inputs = contactForm.querySelectorAll('input, textarea, select');
+            let isValid = true;
+            
+            // Validate each input
+            inputs.forEach(input => {
+                if (input.hasAttribute('required') && !input.value) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else if (input.type === 'email' && input.value && !isValidEmail(input.value)) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            if (isValid) {
+                // In a real application, this would send the form data to a server
+                // For demo purposes, we'll just show a success message
+                
+                // Add a loading state
+                const submitBtn = contactForm.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                submitBtn.disabled = true;
+                
+                // Simulate form submission delay
+                setTimeout(function() {
+                    // Reset button
+                    submitBtn.innerHTML = 'Send Message';
+                    submitBtn.disabled = false;
+                    
+                    // Clear form
+                    contactForm.reset();
+                    
+                    // Show success message
+                    formSuccess.style.display = 'block';
+                    
+                    // Scroll to success message
+                    formSuccess.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(function() {
+                        formSuccess.style.display = 'none';
+                    }, 5000);
+                }, 1500);
+            }
+        });
+        
+        // Input event listeners to clear validation styling on input
+        contactForm.querySelectorAll('input, textarea, select').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+        
+        // Email validation helper function
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+    });
+</script>
+{% endblock %} 

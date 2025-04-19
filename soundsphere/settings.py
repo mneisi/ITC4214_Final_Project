@@ -30,17 +30,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'Home',
-    'Store',
-    'Authentication',
-    'ShoppingCart',
-    'Staff',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'Home',
+    'Store',
+    'Authentication',
+    'ShoppingCart',
+    'Staff',
+    'chatbot',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'ShoppingCart.context_processors.cart_context',
             ],
         },
     },

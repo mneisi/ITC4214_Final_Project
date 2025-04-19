@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Checkout Options | SoundSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="section-title mb-4">Checkout Options</h2>
+            
+            <div class="card checkout-card mb-4">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">Your Cart</h3>
+                    
+                    <div class="cart-summary mb-4">
+                        <div class="table-responsive">
+                            <table class="table cart-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                    <tr>
+                                        <td>
+                                            <div class="product-info">
+                                                <div class="product-name">{{ item.product.name }}</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td class="text-end">${{ item.total_price }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2" class="text-end">Total:</th>
+                                        <th class="text-end">${{ cart.total_price }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card checkout-card">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">Continue as...</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="checkout-option-card p-4 text-center h-100">
+                                <i class="fas fa-user-circle fa-4x mb-3 text-primary"></i>
+                                <h4>Existing User</h4>
+                                <p class="text-muted">Sign in to use your saved addresses and checkout faster</p>
+                                <a href="{% url 'Authentication:login' %}?next={% url 'ShoppingCart:checkout' %}" class="btn btn-primary w-100">Sign In</a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="checkout-option-card p-4 text-center h-100">
+                                <i class="fas fa-user-plus fa-4x mb-3 text-primary"></i>
+                                <h4>New User</h4>
+                                <p class="text-muted">Create an account to track orders and save your information</p>
+                                <a href="{% url 'Authentication:register' %}?next={% url 'ShoppingCart:checkout' %}" class="btn btn-primary w-100">Register</a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mt-4 text-center">
+                            <p class="mb-3">Or checkout without creating an account</p>
+                            <a href="{% url 'ShoppingCart:guest_checkout' %}" class="btn btn-outline-primary">Continue as Guest</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-option-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+    
+    .checkout-option-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.1);
+        transform: translateY(-5px);
+    }
+    
+    .checkout-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .cart-table th, .cart-table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %} 

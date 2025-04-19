@@ -17,12 +17,14 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
+    {% load static %}
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/modern.css">
+    <link rel="stylesheet" href="{% static 'css/modern.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
@@ -58,13 +60,67 @@
                             {% endfor %}
                         </ul>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/about/' %}active{% endif %}" href="{% url 'Home:about' %}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/contact/' %}active{% endif %}" href="{% url 'Home:contact' %}">Contact</a>
+                    </li>
                 </ul>
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center flex-wrap">
                     <!-- Search Form -->
                     <form class="search-form d-flex me-3" action="{% url 'Store:search_products' %}" method="get">
-                        <div class="position-relative">
-                            <i class="fas fa-search search-icon"></i>
-                            <input class="form-control" type="search" name="q" placeholder="Search products..." aria-label="Search">
+                        <div class="ai-search-wrapper">
+                            <div class="ai-search-bar">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="search" class="ai-search-input" name="q" placeholder="Search products or ask a question...">
+                                <button type="button" class="ai-button">
+                                    <i class="fas fa-robot"></i>
+                                    <span class="ai-indicator"></span>
+                                </button>
+                                <button type="button" class="voice-button">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+
+                            <!-- Search Dropdown -->
+                            <div class="search-dropdown" id="searchDropdown">
+                                <div class="dropdown-header">
+                                    <div class="ai-label">
+                                        <i class="fas fa-robot"></i>
+                                        <span>SoundSphere AI Assistant</span>
+                                    </div>
+                                    <div class="feature-badges">
+                                        <span class="feature-badge">Smart Search</span>
+                                        <span class="feature-badge">Recommendations</span>
+                                        <span class="feature-badge">Music Expert</span>
+                                    </div>
+                                </div>
+
+                                <div class="search-examples">
+                                    <div class="examples-heading">Try asking:</div>
+                                    <div class="example-list">
+                                        <span class="example-item">acoustic guitars under $500</span>
+                                        <span class="example-item">best microphones for vocals</span>
+                                        <span class="example-item">beginner friendly drum kits</span>
+                                        <span class="example-item">what instrument should I learn first?</span>
+                                    </div>
+                                </div>
+
+                                <div class="search-results">
+                                    <!-- Results will be populated dynamically -->
+                                </div>
+
+                                <!-- Loading indicator (hidden by default) -->
+                                <div class="loading-indicator" style="display: none;">
+                                    <div class="loading-dots">
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                    </div>
+                                    <span>Searching for you...</span>
+                                </div>
+                            </div>
                         </div>
                     </form>
                     
@@ -80,6 +136,13 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary cart-count">
                             {{ request.user.cart.total_items }}
                         </span>
+                        {% else %}
+                            <!-- Display cart count for anonymous users -->
+                            {% if cart_count and cart_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary cart-count">
+                                {{ cart_count }}
+                            </span>
+                            {% endif %}
                         {% endif %}
                     </a>
                     
@@ -133,12 +196,14 @@
                         </ul>
                     </div>
                     {% else %}
-                    <a href="{% url 'Authentication:login' %}" class="btn btn-outline me-2">
-                        <i class="fas fa-sign-in-alt me-1"></i>Login
-                    </a>
-                    <a href="{% url 'Authentication:register' %}" class="btn btn-primary">
-                        <i class="fas fa-user-plus me-1"></i>Register
-                    </a>
+                    <div class="d-flex">
+                        <a href="{% url 'Authentication:login' %}" class="btn btn-outline me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                        <a href="{% url 'Authentication:register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -158,13 +223,15 @@
     {% endif %}
     
     <!-- Main Content -->
-    {% block body %}{% endblock %}
+    <main>
+        {% block body %}{% endblock %}
+    </main>
     
     <!-- Footer -->
     <footer>
         <div class="container">
             <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
+                <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
                     <h5 class="border-bottom-gradient">SoundSphere</h5>
                     <p>Your premier destination for audio equipment and accessories.</p>
                     <div class="social-icons mt-4">
@@ -174,7 +241,7 @@
                         <a href="#"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
                     <h5 class="border-bottom-gradient">Shop</h5>
                     <ul>
                         <li><a href="{% url 'Store:product_list' %}">All Products</a></li>
@@ -183,22 +250,26 @@
                         <li><a href="#">Accessories</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
+                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
                     <h5 class="border-bottom-gradient">Support</h5>
                     <ul>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">FAQs</a></li>
+                        <li><a href="{% url 'Home:contact' %}">Contact Us</a></li>
+                        <li><a href="{% url 'Home:order_tracking' %}">Track Order</a></li>
                         <li><a href="#">Shipping Info</a></li>
                         <li><a href="#">Returns</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-4 col-md-6">
                     <h5 class="border-bottom-gradient">Newsletter</h5>
                     <p>Subscribe to get updates on new products and special offers.</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control" placeholder="Enter your email" aria-label="Email">
-                        <button class="btn btn-primary" type="button">Subscribe</button>
-                    </div>
+                    <form id="footerNewsletterForm" action="{% url 'Home:subscribe_newsletter' %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <input type="email" name="email" class="form-control" placeholder="Enter your email" aria-label="Email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                        <div id="footer-newsletter-message"></div>
+                    </form>
                 </div>
             </div>
             
@@ -209,9 +280,9 @@
                     </div>
                     <div class="col-md-6 text-center text-md-end">
                         <p class="mb-0">
-                            <a href="#" class="me-3">Privacy Policy</a>
-                            <a href="#" class="me-3">Terms of Service</a>
-                            <a href="#">Sitemap</a>
+                            <a href="{% url 'Home:privacy_policy' %}" class="me-3">Privacy Policy</a>
+                            <a href="{% url 'Home:terms_of_service' %}" class="me-3">Terms of Service</a>
+                            <a href="{% url 'Home:about' %}">About Us</a>
                         </p>
                     </div>
                 </div>
@@ -223,8 +294,91 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="/static/js/main.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
+    
+    <!-- AI Chatbot -->
+    <div class="chatbot-container">
+        <!-- Chatbot Toggle Button -->
+        <div class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-comments"></i>
+            <span class="chatbot-indicator"></span>
+        </div>
+
+        <!-- Chatbot Window -->
+        <div class="chatbot-window" id="chatbotWindow">
+            <!-- Chatbot Header -->
+            <div class="chatbot-header">
+                <div class="chatbot-title">
+                    <i class="fas fa-robot"></i>
+                    <span>SoundSphere Assistant</span>
+                </div>
+                <button class="chatbot-close" id="chatbotClose">&times;</button>
+            </div>
+
+            <!-- Chatbot Messages Body -->
+            <div class="chatbot-body" id="chatbotBody">
+                <!-- Bot Welcome Message -->
+                <div class="message bot-message">
+                    Hello! I'm your SoundSphere AI assistant. I can help you find instruments, answer music questions, or provide personalized recommendations.
+                    <span class="message-time">Just now</span>
+                </div>
+                
+                <!-- Typing indicator -->
+                <div id="typing-indicator" class="loading-indicator" style="display: none;">
+                    <div class="loading-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chatbot Footer (Input Area) -->
+            <div class="chatbot-footer">
+                <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Type your message...">
+                <div class="chatbot-actions">
+                    <button class="chatbot-button" id="voiceInputButton">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="chatbot-button" id="sendMessageButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Chatbot Button -->
+    <button id="floatingChatButton" class="chatbot-float" title="Chat with SoundSphere Assistant">
+        <i class="fas fa-robot"></i>
+    </button>
+
+    {% load static %}
+    <!-- Chatbot Script -->
+    <script>
+    // Simple safeguard to prevent automatic API calls
+    window.CHATBOT_CONFIG = {
+        preventAutoRequests: true,
+        historyLoaded: false,
+        autoLoadDisabled: true
+    };
+    
+    // Set a page-specific ID to identify new page loads 
+    window.CHATBOT_PAGE_ID = '{{ request.path }}_' + Date.now();
+    
+    // Clear chatbot visibility on form submissions to prevent auto-opening
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(function(form) {
+            form.addEventListener('submit', function() {
+                localStorage.setItem('chatbot_visible', 'false');
+                localStorage.setItem('chatbot_last_page', window.CHATBOT_PAGE_ID);
+            });
+        });
+    });
+    </script>
+    <script src="{% static 'js/chatbot.js' %}"></script>
 </body>
 </html> 

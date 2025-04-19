@@ -135,6 +135,7 @@ def category_products(request, category_slug):
 def subcategory_products(request, subcategory_slug):
     subcategory = get_object_or_404(SubCategory, slug=subcategory_slug)
     products = Product.objects.filter(subcategory=subcategory)
+    categories = Category.objects.all()
     
     # Filtering
     brand_filter = request.GET.get('brand')
@@ -174,6 +175,7 @@ def subcategory_products(request, subcategory_slug):
     context = {
         'subcategory': subcategory,
         'category': subcategory.category,
+        'categories': categories,
         'page_obj': page_obj,
         'brands': brands,
         'brand_filter': brand_filter,
@@ -187,6 +189,7 @@ def subcategory_products(request, subcategory_slug):
 def product_detail(request, product_slug):
     product = get_object_or_404(Product, slug=product_slug)
     reviews = Review.objects.filter(product=product)
+    categories = Category.objects.all()
     
     # Related products (same category)
     related_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
@@ -205,6 +208,7 @@ def product_detail(request, product_slug):
     context = {
         'product': product,
         'reviews': reviews,
+        'categories': categories,
         'avg_rating': avg_rating,
         'related_products': related_products,
     }
@@ -214,6 +218,7 @@ def product_detail(request, product_slug):
 def search_products(request):
     query = request.GET.get('q', '')
     category = request.GET.get('category', '')
+    categories = Category.objects.all()
     
     if query:
         if category:
@@ -262,9 +267,6 @@ def search_products(request):
     
     # Brands for filtering
     brands = products.values_list('brand', flat=True).distinct()
-    
-    # Categories for filtering
-    categories = Category.objects.all()
     
     context = {
         'query': query,
@@ -321,73 +323,45 @@ def add_review(request, product_id):
     return redirect('Store:product_detail', product_slug=product.slug)
 
 def recommended_products(request, product_slug):
-    """
-    Recommender system - returns products that:
-    1. Are in the same category/subcategory
-    2. Have similar price range
-    3. Are from the same brand
-    4. Other users who viewed this product also viewed
-    """
+    """Get recommended products based on current product"""
     product = get_object_or_404(Product, slug=product_slug)
     
-    # Get products from the same category and subcategory
-    category_products = Product.objects.filter(category=product.category).exclude(id=product.id)
-    subcategory_products = Product.objects.filter(subcategory=product.subcategory).exclude(id=product.id)
+    # Get products from same category excluding current product
+    category_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:3]
     
-    # Get products in the same price range (±20%)
-    min_price = product.price * 0.8
-    max_price = product.price * 1.2
-    similar_price_products = Product.objects.filter(price__gte=min_price, price__lte=max_price).exclude(id=product.id)
+    # Get products from same brand excluding current product
+    brand_products = Product.objects.filter(brand=product.brand).exclude(id=product.id)[:2]
     
-    # Get products from the same brand
-    brand_products = Product.objects.filter(brand=product.brand).exclude(id=product.id)
+    # Combine recommendations, avoiding duplicates
+    recommended = list(category_products)
+    for item in brand_products:
+        if item not in recommended:
+            recommended.append(item)
     
-    # Get products that other users who viewed this product also viewed
-    # (Only if user is logged in)
-    user_also_viewed = []
-    if request.user.is_authenticated:
-        # Find users who viewed this product
-        users_who_viewed = RecentActivity.objects.filter(
-            product=product, 
-            activity_type='viewed'
-        ).values_list('user', flat=True)
+    # Limit to 4 items at most
+    recommended = recommended[:4]
+    
+    # Prepare product data for JSON response
+    products_data = []
+    for prod in recommended:
+        # Get first image if available
+        image_url = None
+        if prod.images.exists():
+            image_url = prod.images.first().image.url
         
-        # Find products those users also viewed
-        user_also_viewed = RecentActivity.objects.filter(
-            user__in=users_who_viewed, 
-            activity_type='viewed'
-        ).exclude(product=product).values_list('product', flat=True)
+        # Calculate average rating
+        avg_rating = prod.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
         
-        user_also_viewed = Product.objects.filter(id__in=user_also_viewed)
+        # Format product data
+        products_data.append({
+            'id': prod.id,
+            'name': prod.name,
+            'slug': prod.slug,
+            'price': str(prod.price),
+            'sale_price': str(prod.sale_price) if prod.sale_price else None,
+            'image': image_url,
+            'avg_rating': avg_rating,
+            'brand': prod.brand
+        })
     
-    # Combine and prioritize recommendations
-    recommended = list(subcategory_products[:3]) + list(brand_products[:3]) + list(similar_price_products[:3]) + list(user_also_viewed[:3])
-    
-    # Remove duplicates while preserving order
-    seen = set()
-    unique_recommended = [x for x in recommended if not (x.id in seen or seen.add(x.id))]
-    
-    # Limit to 6 products
-    recommended_products = unique_recommended[:6]
-    
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # AJAX request
-        product_data = [{
-            'id': p.id,
-            'name': p.name,
-            'slug': p.slug,
-            'price': float(p.price),
-            'sale_price': float(p.sale_price) if p.sale_price else None,
-            'image': p.images.filter(is_main=True).first().image.url if p.images.filter(is_main=True).exists() else '',
-            'avg_rating': p.avg_rating,
-        } for p in recommended_products]
-        
-        return JsonResponse({'products': product_data})
-    
-    # Regular request
-    context = {
-        'recommended_products': recommended_products,
-        'product': product,
-    }
-    
-    return render(request, 'store/recommended_products.html', context)
+    return JsonResponse({'products': products_data})

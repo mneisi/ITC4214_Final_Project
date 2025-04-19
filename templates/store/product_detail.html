@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}{{ product.name }}{% endblock %}
 
@@ -18,27 +19,26 @@
     <div class="row">
         <!-- Product Images -->
         <div class="col-md-6 mb-4">
-            <div class="product-image-wrapper">
-                <div class="main-image mb-3">
+            <div class="product-image-wrapper card">
+                <div class="main-image p-4 d-flex justify-content-center align-items-center">
                     {% if product.images.filter.first %}
                         <img src="{{ product.images.filter.first.image.url }}" 
-                            class="img-fluid rounded" alt="{{ product.name }}" id="mainImage">
+                            class="img-fluid rounded img-fade-in" alt="{{ product.name }}" id="main-product-image">
                     {% else %}
                         <img src="{% static 'images/placeholder.jpg' %}" 
-                            class="img-fluid rounded" alt="{{ product.name }}" id="mainImage">
+                            class="img-fluid rounded img-fade-in" alt="{{ product.name }}" id="main-product-image">
                     {% endif %}
                 </div>
                 
                 <!-- Thumbnail Gallery -->
                 {% if product.images.count > 1 %}
-                <div class="row">
+                <div class="row p-3">
                     {% for image in product.images.all %}
                     <div class="col-3 mb-3">
                         <img src="{{ image.image.url }}" 
-                            class="img-fluid rounded thumbnail" 
-                            alt="{{ image.alt_text|default:product.name }}" 
-                            onclick="document.getElementById('mainImage').src = this.src"
-                            style="cursor: pointer;">
+                            class="img-fluid rounded product-thumbnail{% if forloop.first %} active-thumbnail{% endif %}" 
+                            data-full-img="{{ image.image.url }}"
+                            alt="{{ image.alt_text|default:product.name }}">
                     </div>
                     {% endfor %}
                 </div>
@@ -48,7 +48,7 @@
         
         <!-- Product Information -->
         <div class="col-md-6">
-            <h1 class="mb-2">{{ product.name }}</h1>
+            <h1 class="mb-3">{{ product.name }}</h1>
             
             <!-- Rating -->
             <div class="d-flex align-items-center mb-3">
@@ -122,16 +122,16 @@
                 <div class="d-flex mb-3">
                     <div class="quantity-selector me-3">
                         <div class="input-group" style="width: 140px">
-                            <button type="button" class="btn btn-outline-secondary btn-minus">
+                            <button type="button" class="btn btn-outline quantity-btn decrement">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <input type="number" name="quantity" class="form-control text-center" value="1" min="1" max="{{ product.stock }}">
-                            <button type="button" class="btn btn-outline-secondary btn-plus">
+                            <input type="number" name="quantity" id="quantity" class="form-control text-center" value="1" min="1" max="{{ product.stock }}">
+                            <button type="button" class="btn btn-outline quantity-btn increment">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary flex-grow-1">
+                    <button type="submit" class="btn btn-primary btn-hover-lift flex-grow-1">
                         <i class="fas fa-cart-plus me-2"></i>Add to Cart
                     </button>
                 </div>
@@ -141,16 +141,16 @@
             <!-- Wishlist & Share -->
             <div class="d-flex mb-4">
                 {% if user.is_authenticated %}
-                <a href="{% url 'Authentication:add_to_wishlist' product.id %}" class="btn btn-outline-danger me-2">
+                <a href="{% url 'Authentication:add_to_wishlist' product.id %}" class="btn btn-outline me-2">
                     <i class="far fa-heart me-1"></i> Add to Wishlist
                 </a>
                 {% else %}
-                <a href="{% url 'Authentication:login' %}?next={% url 'Store:product_detail' product.slug %}" class="btn btn-outline-danger me-2">
+                <a href="{% url 'Authentication:login' %}?next={% url 'Store:product_detail' product.slug %}" class="btn btn-outline me-2">
                     <i class="far fa-heart me-1"></i> Add to Wishlist
                 </a>
                 {% endif %}
                 
-                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#shareModal">
                     <i class="fas fa-share-alt me-1"></i> Share
                 </button>
             </div>
@@ -162,20 +162,20 @@
         <div class="col-12">
             <ul class="nav nav-tabs" id="productTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs" 
-                        type="button" role="tab" aria-controls="specs" aria-selected="true">
+                    <button class="nav-link active product-tab-btn" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs" 
+                        type="button" role="tab" aria-controls="specs" aria-selected="true" data-tab="specs">
                         Specifications
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" 
-                        type="button" role="tab" aria-controls="reviews" aria-selected="false">
+                    <button class="nav-link product-tab-btn" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" 
+                        type="button" role="tab" aria-controls="reviews" aria-selected="false" data-tab="reviews">
                         Reviews ({{ product.rating_count }})
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="recommended-tab" data-bs-toggle="tab" data-bs-target="#recommended" 
-                        type="button" role="tab" aria-controls="recommended" aria-selected="false">
+                    <button class="nav-link product-tab-btn" id="recommended-tab" data-bs-toggle="tab" data-bs-target="#recommended" 
+                        type="button" role="tab" aria-controls="recommended" aria-selected="false" data-tab="recommended">
                         Recommended Products
                     </button>
                 </li>
@@ -183,66 +183,74 @@
             
             <div class="tab-content pt-4" id="productTabsContent">
                 <!-- Specifications Tab -->
-                <div class="tab-pane fade show active" id="specs" role="tabpanel" aria-labelledby="specs-tab">
+                <div class="tab-pane fade show active product-tab-content" id="specs" role="tabpanel" aria-labelledby="specs-tab">
                     <div class="row">
                         <div class="col-md-6">
                             <h4 class="mb-3">Product Details</h4>
-                            <table class="table">
-                                <tbody>
-                                    <tr>
-                                        <th style="width: 35%">Brand</th>
-                                        <td>{{ product.brand }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Category</th>
-                                        <td>{{ product.category.name }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Subcategory</th>
-                                        <td>{{ product.subcategory.name }}</td>
-                                    </tr>
-                                    {% if product.weight %}
-                                    <tr>
-                                        <th>Weight</th>
-                                        <td>{{ product.weight }} kg</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% if product.dimensions %}
-                                    <tr>
-                                        <th>Dimensions</th>
-                                        <td>{{ product.dimensions }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% if product.warranty %}
-                                    <tr>
-                                        <th>Warranty</th>
-                                        <td>{{ product.warranty }}</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+                            <div class="card">
+                                <div class="card-body p-0">
+                                    <table class="table mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th style="width: 35%">Brand</th>
+                                                <td>{{ product.brand }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Category</th>
+                                                <td>{{ product.category.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Subcategory</th>
+                                                <td>{{ product.subcategory.name }}</td>
+                                            </tr>
+                                            {% if product.weight %}
+                                            <tr>
+                                                <th>Weight</th>
+                                                <td>{{ product.weight }} kg</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if product.dimensions %}
+                                            <tr>
+                                                <th>Dimensions</th>
+                                                <td>{{ product.dimensions }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if product.warranty %}
+                                            <tr>
+                                                <th>Warranty</th>
+                                                <td>{{ product.warranty }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="col-md-6">
                             {% if product.specifications.exists %}
                             <h4 class="mb-3">Technical Specifications</h4>
-                            <table class="table">
-                                <tbody>
-                                    {% for spec in product.specifications.all %}
-                                    <tr>
-                                        <th style="width: 35%">{{ spec.name }}</th>
-                                        <td>{{ spec.value }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                            <div class="card">
+                                <div class="card-body p-0">
+                                    <table class="table mb-0">
+                                        <tbody>
+                                            {% for spec in product.specifications.all %}
+                                            <tr>
+                                                <th style="width: 35%">{{ spec.name }}</th>
+                                                <td>{{ spec.value }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
                 
                 <!-- Reviews Tab -->
-                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <div class="tab-pane fade product-tab-content" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
                     <!-- Write a Review -->
                     {% if user.is_authenticated %}
                     <div class="card mb-4">
@@ -250,9 +258,9 @@
                             <h5 class="mb-0">Write a Review</h5>
                         </div>
                         <div class="card-body">
-                            <form action="{% url 'Store:add_review' product.id %}" method="post">
+                            <form action="{% url 'Store:add_review' product.id %}" method="post" id="review-form">
                                 {% csrf_token %}
-                                <div class="mb-3">
+                                <div class="mb-3 rating-container">
                                     <label class="form-label">Rating</label>
                                     <div class="rating-input">
                                         <div class="d-flex">
@@ -266,6 +274,7 @@
                                             {% endfor %}
                                         </div>
                                     </div>
+                                    <input type="hidden" id="rating" name="rating" value="0">
                                 </div>
                                 <div class="mb-3">
                                     <label for="comment" class="form-label">Review</label>
@@ -312,7 +321,7 @@
                 </div>
                 
                 <!-- Recommended Products Tab -->
-                <div class="tab-pane fade" id="recommended" role="tabpanel" aria-labelledby="recommended-tab">
+                <div class="tab-pane fade product-tab-content" id="recommended" role="tabpanel" aria-labelledby="recommended-tab" data-url="{% url 'Store:recommended_products' product.slug %}">
                     <h4 class="mb-4">You Might Also Like</h4>
                     
                     <div class="row" id="recommended-products">
@@ -339,20 +348,20 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex justify-content-around">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline">
                         <i class="fab fa-facebook-f"></i> Facebook
                     </a>
-                    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text=Check out this product: {{ product.name }}" target="_blank" class="btn btn-outline-info">
+                    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text=Check out this product: {{ product.name }}" target="_blank" class="btn btn-outline">
                         <i class="fab fa-twitter"></i> Twitter
                     </a>
-                    <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&description={{ product.name }}" target="_blank" class="btn btn-outline-danger">
+                    <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&description={{ product.name }}" target="_blank" class="btn btn-outline">
                         <i class="fab fa-pinterest"></i> Pinterest
                     </a>
                 </div>
                 <hr>
                 <div class="input-group mt-3">
                     <input type="text" class="form-control" value="{{ request.build_absolute_uri }}" id="shareUrl" readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="copyLink">Copy</button>
+                    <button class="btn btn-outline" type="button" id="copyLink">Copy</button>
                 </div>
             </div>
         </div>
@@ -360,140 +369,37 @@
 </div>
 
 {% block extra_js %}
+<script src="{% static 'js/product-detail.js' %}"></script>
 <script>
-    $(document).ready(function() {
-        // Quantity selector
-        $('.btn-minus').click(function() {
-            var input = $(this).siblings('input');
-            var value = parseInt(input.val());
-            if (value > 1) {
-                input.val(value - 1);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark main image as loaded for fade-in effect
+        const mainImage = document.getElementById('main-product-image');
+        if (mainImage) {
+            if (mainImage.complete) {
+                mainImage.classList.add('loaded');
+            } else {
+                mainImage.addEventListener('load', function() {
+                    this.classList.add('loaded');
+                });
             }
-        });
+        }
         
-        $('.btn-plus').click(function() {
-            var input = $(this).siblings('input');
-            var value = parseInt(input.val());
-            var max = parseInt(input.attr('max'));
-            if (value < max) {
-                input.val(value + 1);
-            }
-        });
-        
-        // Rating stars for review form
-        $('.rating-star').hover(
-            function() {
-                var rating = $(this).data('rating');
-                for (var i = 1; i <= 5; i++) {
-                    if (i <= rating) {
-                        $('.rating-star[data-rating="' + i + '"]').removeClass('far').addClass('fas');
-                    } else {
-                        $('.rating-star[data-rating="' + i + '"]').removeClass('fas').addClass('far');
-                    }
-                }
-            },
-            function() {
-                var selectedRating = $('input[name="rating"]:checked').val() || 0;
-                for (var i = 1; i <= 5; i++) {
-                    if (i <= selectedRating) {
-                        $('.rating-star[data-rating="' + i + '"]').removeClass('far').addClass('fas');
-                    } else {
-                        $('.rating-star[data-rating="' + i + '"]').removeClass('fas').addClass('far');
-                    }
-                }
-            }
-        );
-        
-        $('.rating-star').click(function() {
-            var rating = $(this).data('rating');
-            $('input[name="rating"][value="' + rating + '"]').prop('checked', true);
-            for (var i = 1; i <= 5; i++) {
-                if (i <= rating) {
-                    $('.rating-star[data-rating="' + i + '"]').removeClass('far').addClass('fas');
-                } else {
-                    $('.rating-star[data-rating="' + i + '"]').removeClass('fas').addClass('far');
-                }
-            }
-        });
-        
-        // Copy share link
+        // Copy share link with modern toast notification
         $('#copyLink').click(function() {
             var copyText = document.getElementById("shareUrl");
             copyText.select();
             copyText.setSelectionRange(0, 99999);
             document.execCommand("copy");
-            $(this).text("Copied!");
-            setTimeout(function() {
-                $('#copyLink').text("Copy");
-            }, 2000);
-        });
-        
-        // Load recommended products when tab is clicked
-        $('#recommended-tab').on('shown.bs.tab', function (e) {
-            $.ajax({
-                url: "{% url 'Store:recommended_products' product.slug %}",
-                type: "GET",
-                dataType: "json",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                },
-                success: function(data) {
-                    var html = '';
-                    
-                    if (data.products.length === 0) {
-                        html = '<div class="col-12"><p>No recommended products found.</p></div>';
-                    } else {
-                        for (var i = 0; i < data.products.length; i++) {
-                            var product = data.products[i];
-                            html += `
-                                <div class="col-md-6 col-lg-4 mb-4">
-                                    <div class="card product-card h-100">
-                                        <img src="${product.image || '{% static "images/placeholder.jpg" %}'}" class="card-img-top" alt="${product.name}">
-                                        <div class="card-body">
-                                            <h5 class="product-title">${product.name}</h5>
-                                            <div class="rating mb-2">`;
-                            
-                            for (var j = 1; j <= 5; j++) {
-                                if (j <= Math.floor(product.avg_rating)) {
-                                    html += '<i class="fas fa-star"></i>';
-                                } else if (j <= Math.ceil(product.avg_rating) && product.avg_rating % 1 !== 0) {
-                                    html += '<i class="fas fa-star-half-alt"></i>';
-                                } else {
-                                    html += '<i class="far fa-star"></i>';
-                                }
-                            }
-                            
-                            html += `</div>`;
-                            
-                            if (product.sale_price) {
-                                html += `
-                                    <p class="mb-2">
-                                        <span class="text-decoration-line-through text-muted">$${product.price}</span>
-                                        <span class="product-price">$${product.sale_price}</span>
-                                    </p>`;
-                            } else {
-                                html += `<p class="product-price mb-2">$${product.price}</p>`;
-                            }
-                            
-                            html += `
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <a href="/store/product/${product.slug}/" class="btn btn-sm btn-primary">View Details</a>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary">
-                                                    <i class="fas fa-cart-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>`;
-                        }
-                    }
-                    
-                    $('#recommended-products').html(html);
-                },
-                error: function() {
-                    $('#recommended-products').html('<div class="col-12"><p>Failed to load recommended products.</p></div>');
-                }
-            });
+            
+            // Use toast notification if available
+            if (typeof toastSystem !== 'undefined') {
+                toastSystem.success('Link copied to clipboard!');
+            } else {
+                $(this).text("Copied!");
+                setTimeout(function() {
+                    $('#copyLink').text("Copy");
+                }, 2000);
+            }
         });
     });
 </script>

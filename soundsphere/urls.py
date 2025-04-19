@@ -27,6 +27,7 @@ urlpatterns = [
     path('account/', include('Authentication.urls', namespace='Authentication')),
     path('cart/', include('ShoppingCart.urls', namespace='ShoppingCart')),
     path('staff/', include('Staff.urls', namespace='Staff')),
+    path('chatbot/', include('chatbot.urls', namespace='chatbot')),
 ]
 
 if settings.DEBUG:

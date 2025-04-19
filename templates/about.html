@@ -1,0 +1,368 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}About Us - SoundSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="fw-bold">About SoundSphere</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'Home:home' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">About Us</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Company Overview Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="position-relative">
+                <img src="{% static 'images/about/company-overview.jpg' %}" alt="SoundSphere Headquarters" class="img-fluid rounded-4 shadow">
+                <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle p-3 shadow-lg" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                    <h2 class="text-white fw-bold m-0" style="font-size: 2rem;">10+</h2>
+                </div>
+                <div class="bg-white position-absolute bottom-0 end-0 translate-middle-y rounded-4 shadow p-3 pe-4">
+                    <p class="mb-0 fw-semibold text-primary">Years of Innovation</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-4">Our Story</h2>
+            <p class="lead mb-4">Founded in 2012, SoundSphere began with a simple mission: to bring high-quality sound experiences to everyone, regardless of budget or technical expertise.</p>
+            <p class="mb-4">Our journey started in a small garage in San Francisco, where our founders, Alex Chen and Maya Rodriguez, two audio engineers with a passion for music, began developing prototype headphones that would deliver premium sound without the premium price tag.</p>
+            <p>Today, SoundSphere has grown into a global brand with over 500 employees worldwide, but our core mission remains unchanged. We continue to push the boundaries of audio technology while remaining committed to accessibility, quality, and sustainability.</p>
+        </div>
+    </div>
+    
+    <!-- Mission & Values Section -->
+    <div class="row bg-light rounded-4 p-4 p-lg-5 mb-5">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <h2 class="fw-bold mb-4">Our Mission</h2>
+            <p>At SoundSphere, we're on a mission to transform how people experience sound. We believe that exceptional audio should be accessible to everyone, and we're dedicated to creating products that deliver on that promise.</p>
+            <p>Through continuous innovation and attention to detail, we strive to bring the joy of immersive sound to people around the world, enhancing how they experience music, podcasts, gaming, and more.</p>
+        </div>
+        <div class="col-lg-8">
+            <h2 class="fw-bold mb-4">Our Values</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary p-2 me-3">
+                                    <i class="fas fa-lightbulb text-white"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Innovation</h3>
+                            </div>
+                            <p class="card-text mb-0">We continuously push the boundaries of audio technology, seeking new ways to improve sound quality and user experience.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary p-2 me-3">
+                                    <i class="fas fa-gem text-white"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Quality</h3>
+                            </div>
+                            <p class="card-text mb-0">We hold ourselves to the highest standards in design, manufacturing, and customer service to ensure lasting value.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary p-2 me-3">
+                                    <i class="fas fa-handshake text-white"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Accessibility</h3>
+                            </div>
+                            <p class="card-text mb-0">We believe everyone deserves great sound, so we create products at various price points without compromising quality.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary p-2 me-3">
+                                    <i class="fas fa-leaf text-white"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Sustainability</h3>
+                            </div>
+                            <p class="card-text mb-0">We're committed to reducing our environmental footprint through responsible manufacturing and recyclable materials.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Meet Our Leadership Team</h2>
+            <p class="lead">The passionate people behind SoundSphere's innovation and success</p>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <img src="{% static 'images/about/team-alex.jpg' %}" class="card-img-top" alt="Alex Chen">
+                <div class="card-body text-center">
+                    <h3 class="h5 mb-1">Alex Chen</h3>
+                    <p class="text-primary mb-3">Co-Founder & CEO</p>
+                    <p class="card-text">Audio engineer with 15+ years of experience in product development. Alex leads our company vision and innovation strategy.</p>
+                    <div class="social-links mt-3">
+                        <a href="#" class="text-secondary me-2"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-secondary"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <img src="{% static 'images/about/team-maya.jpg' %}" class="card-img-top" alt="Maya Rodriguez">
+                <div class="card-body text-center">
+                    <h3 class="h5 mb-1">Maya Rodriguez</h3>
+                    <p class="text-primary mb-3">Co-Founder & CTO</p>
+                    <p class="card-text">Former acoustics researcher with a Ph.D. in electrical engineering. Maya oversees all technology development at SoundSphere.</p>
+                    <div class="social-links mt-3">
+                        <a href="#" class="text-secondary me-2"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-secondary"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <img src="{% static 'images/about/team-david.jpg' %}" class="card-img-top" alt="David Park">
+                <div class="card-body text-center">
+                    <h3 class="h5 mb-1">David Park</h3>
+                    <p class="text-primary mb-3">Chief Design Officer</p>
+                    <p class="card-text">Award-winning industrial designer who ensures our products are both beautiful and functional with user-centered design.</p>
+                    <div class="social-links mt-3">
+                        <a href="#" class="text-secondary me-2"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-secondary"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <img src="{% static 'images/about/team-sarah.jpg' %}" class="card-img-top" alt="Sarah Johnson">
+                <div class="card-body text-center">
+                    <h3 class="h5 mb-1">Sarah Johnson</h3>
+                    <p class="text-primary mb-3">Chief Marketing Officer</p>
+                    <p class="card-text">With experience at top tech companies, Sarah leads our global marketing strategies and brand development initiatives.</p>
+                    <div class="social-links mt-3">
+                        <a href="#" class="text-secondary me-2"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-secondary"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Section -->
+    <div class="row bg-primary rounded-4 p-5 mb-5 text-white">
+        <div class="col-md-3 col-6 text-center mb-4 mb-md-0">
+            <h3 class="display-4 fw-bold mb-0">50+</h3>
+            <p class="mb-0">Countries</p>
+        </div>
+        <div class="col-md-3 col-6 text-center mb-4 mb-md-0">
+            <h3 class="display-4 fw-bold mb-0">500+</h3>
+            <p class="mb-0">Employees</p>
+        </div>
+        <div class="col-md-3 col-6 text-center mb-4 mb-md-0">
+            <h3 class="display-4 fw-bold mb-0">20+</h3>
+            <p class="mb-0">Product Lines</p>
+        </div>
+        <div class="col-md-3 col-6 text-center">
+            <h3 class="display-4 fw-bold mb-0">3M+</h3>
+            <p class="mb-0">Happy Customers</p>
+        </div>
+    </div>
+    
+    <!-- Testimonials Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">What Our Customers Say</h2>
+            <p class="lead">Discover why music lovers and audiophiles choose SoundSphere</p>
+        </div>
+        
+        <div class="col-12">
+            <div class="testimonial-slider position-relative">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex mb-4">
+                                    <div class="text-warning me-2">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-muted">5.0</span>
+                                </div>
+                                <p class="testimonial-text mb-4">"I've tried dozens of headphones over the years, but SoundSphere's quality is unmatched. The sound clarity is incredible, and they're comfortable enough to wear all day. Worth every penny!"</p>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/about/testimonial-1.jpg' %}" alt="James Wilson" class="rounded-circle me-3" width="60">
+                                    <div>
+                                        <h4 class="h6 mb-1">James Wilson</h4>
+                                        <p class="mb-0 text-muted small">Music Producer, Los Angeles</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex mb-4">
+                                    <div class="text-warning me-2">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-muted">5.0</span>
+                                </div>
+                                <p class="testimonial-text mb-4">"As a professional gamer, audio quality is crucial. SoundSphere's gaming headsets give me perfect spatial awareness and the noise cancellation is top-notch. They've improved my performance dramatically."</p>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/about/testimonial-2.jpg' %}" alt="Emma Chen" class="rounded-circle me-3" width="60">
+                                    <div>
+                                        <h4 class="h6 mb-1">Emma Chen</h4>
+                                        <p class="mb-0 text-muted small">Professional Gamer, Seattle</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex mb-4">
+                                    <div class="text-warning me-2">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="text-muted">4.5</span>
+                                </div>
+                                <p class="testimonial-text mb-4">"SoundSphere's wireless earbuds have been a game-changer for my daily commute. Great battery life, stays in place during workouts, and the sound quality rivals much more expensive brands."</p>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/about/testimonial-3.jpg' %}" alt="Marcus Johnson" class="rounded-circle me-3" width="60">
+                                    <div>
+                                        <h4 class="h6 mb-1">Marcus Johnson</h4>
+                                        <p class="mb-0 text-muted small">Fitness Instructor, Chicago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex mb-4">
+                                    <div class="text-warning me-2">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-muted">5.0</span>
+                                </div>
+                                <p class="testimonial-text mb-4">"What impresses me most about SoundSphere is their customer service. When I had an issue with my speakers, they resolved it immediately. The sound quality is exceptional, but their commitment to customers is what makes them stand out."</p>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/about/testimonial-4.jpg' %}" alt="Sophia Martinez" class="rounded-circle me-3" width="60">
+                                    <div>
+                                        <h4 class="h6 mb-1">Sophia Martinez</h4>
+                                        <p class="mb-0 text-muted small">Audiophile, New York</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="bg-light rounded-4 p-5 text-center">
+                <h2 class="fw-bold mb-3">Join the SoundSphere Community</h2>
+                <p class="lead mb-4">Experience the difference that premium audio can make in your daily life</p>
+                <div class="d-flex justify-content-center flex-wrap gap-3">
+                    <a href="{% url 'Store:all_products' %}" class="btn btn-primary btn-lg px-4">Shop Our Products</a>
+                    <a href="{% url 'contact' %}" class="btn btn-outline-primary btn-lg px-4">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Team member cards hover effect */
+    .card img {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover img {
+        transform: scale(1.03);
+    }
+    
+    /* Testimonial text styling */
+    .testimonial-text {
+        position: relative;
+        font-style: italic;
+    }
+    
+    .testimonial-text::before {
+        content: '"';
+        font-size: 4rem;
+        position: absolute;
+        opacity: 0.1;
+        top: -20px;
+        left: -15px;
+        font-family: serif;
+    }
+    
+    /* Statistics section styling */
+    .bg-primary {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bg-primary::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
+</style>
+{% endblock %} 

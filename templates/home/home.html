@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="col-lg-6 mt-5 mt-lg-0 text-center animate-slide-up">
-                <img src="/static/images/hero-headphones.jpg" alt="Premium Headphones" class="img-fluid rounded-2xl shadow-lg">
+                <img src="{% static 'images/hero-headphones.jpg' %}" alt="Premium Headphones" class="img-fluid rounded-2xl shadow-lg">
             </div>
         </div>
     </div>
@@ -80,7 +80,7 @@
                         {% if product.images.filter.first %}
                             <img src="{{ product.images.filter.first.image.url }}" alt="{{ product.name }}">
                         {% else %}
-                            <img src="/static/images/placeholder.jpg" alt="{{ product.name }}">
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
                         {% endif %}
                     </div>
                     <div class="card-body">
@@ -148,7 +148,7 @@
                         {% if product.images.filter.first %}
                             <img src="{{ product.images.filter.first.image.url }}" alt="{{ product.name }}">
                         {% else %}
-                            <img src="/static/images/placeholder.jpg" alt="{{ product.name }}">
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
                         {% endif %}
                     </div>
                     <div class="card-body">
@@ -216,7 +216,7 @@
                         {% if product.images.filter.first %}
                             <img src="{{ product.images.filter.first.image.url }}" alt="{{ product.name }}">
                         {% else %}
-                            <img src="/static/images/placeholder.jpg" alt="{{ product.name }}">
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
                         {% endif %}
                     </div>
                     <div class="card-body">
@@ -312,10 +312,14 @@
             <div class="col-md-8 text-center">
                 <h2 class="mb-4">Subscribe to Our Newsletter</h2>
                 <p class="text-muted mb-4">Stay updated with the latest products, exclusive offers, and audio tips.</p>
-                <div class="input-group mb-3 mx-auto" style="max-width: 500px;">
-                    <input type="email" class="form-control" placeholder="Enter your email address" aria-label="Email address">
-                    <button class="btn btn-primary" type="button">Subscribe</button>
-                </div>
+                <form id="newsletterForm" action="{% url 'Home:subscribe_newsletter' %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group mb-3 mx-auto" style="max-width: 500px;">
+                        <input type="email" name="email" class="form-control" placeholder="Enter your email address" aria-label="Email address" required>
+                        <button class="btn btn-primary" type="submit">Subscribe</button>
+                    </div>
+                </form>
+                <div id="newsletter-message"></div>
                 <p class="small text-muted mt-2">By subscribing, you agree to receive marketing emails from SoundSphere.</p>
             </div>
         </div>
