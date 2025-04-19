@@ -8,6 +8,7 @@ from .models import UserProfile, RecentActivity
 from Store.models import Product
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
+from .forms import UserEditForm, UserProfileForm
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -25,15 +26,8 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
+            # Automatically create UserProfile when User is saved via the signal in models.py
         return user
-
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ('profile_picture', 'phone_number', 'address', 'city', 'state', 'zip_code', 'country', 'birth_date')
-        widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'})
-        }
 
 def register(request):
     if request.user.is_authenticated:
@@ -93,7 +87,8 @@ def edit_profile(request):
     user_profile = request.user.profile
     
     if request.method == 'POST':
-        user_form = forms.ModelForm(request.POST, instance=request.user)
+        # Use UserEditForm for the User model fields
+        user_form = UserEditForm(request.POST, instance=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
         
         if user_form.is_valid() and profile_form.is_valid():
@@ -102,8 +97,8 @@ def edit_profile(request):
             messages.success(request, 'Your profile has been updated!')
             return redirect('Authentication:profile')
     else:
-        user_form = forms.ModelForm(instance=request.user, 
-                                   fields=('first_name', 'last_name', 'email'))
+        # Use the specific forms directly
+        user_form = UserEditForm(instance=request.user)
         profile_form = UserProfileForm(instance=user_profile)
     
     context = {

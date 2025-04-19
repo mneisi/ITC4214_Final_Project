@@ -15,6 +15,8 @@ import csv
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncDay, TruncMonth
+import random
+import string
 
 def is_staff(user):
     return user.is_staff
@@ -28,6 +30,28 @@ class SubCategoryForm(forms.ModelForm):
     class Meta:
         model = SubCategory
         fields = ['category', 'name', 'description', 'image']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Generate unique slug
+        original_slug = slugify(instance.name)
+        slug = original_slug
+        counter = 1
+        
+        # Check for uniqueness and append counter if needed
+        while SubCategory.objects.filter(slug=slug).exclude(pk=instance.pk).exists():
+            # Alternative: Append random string instead of counter
+            # random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            # slug = f"{original_slug}-{random_str}"
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+            
+        instance.slug = slug
+
+        if commit:
+            instance.save()
+        return instance
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -459,10 +483,18 @@ def delete_product(request):
 @login_required
 @user_passes_test(is_staff)
 def category_management(request):
-    categories = Category.objects.all()
+    categories = Category.objects.annotate(subcategory_count=Count('subcategories')).order_by('name')
+    subcategories = SubCategory.objects.select_related('category').order_by('category__name', 'name')
     
+    # Always provide empty forms for initial display (or if add fails)
+    category_form = CategoryForm()
+    add_subcategory_form = SubCategoryForm()
+
     context = {
         'categories': categories,
+        'subcategories': subcategories,
+        'category_form': category_form,
+        'add_subcategory_form': add_subcategory_form, 
     }
     
     return render(request, 'staff/category_management.html', context)
@@ -471,65 +503,55 @@ def category_management(request):
 @user_passes_test(is_staff)
 def add_category(request):
     if request.method == 'POST':
-        # Get form data
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        
-        # Validate data
-        if not name:
-            messages.error(request, "Category name is required.")
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Category "{category.name}" created successfully.')
             return redirect('Staff:category_management')
-        
-        # Create new category
-        category = Category(
-            name=name,
-            description=description
-        )
-        
-        # Handle image upload if provided
-        if 'image' in request.FILES:
-            category.image = request.FILES['image']
-        
-        # Save new category
-        category.save()
-        
-        messages.success(request, f'Category "{category.name}" has been created successfully.')
-        return redirect('Staff:category_management')
-    
-    # This should be handled by a modal in the category_management.html template
+        else:
+            # Form is invalid, re-render the management page with the invalid form and errors
+            messages.error(request, 'Error adding category. Please correct the errors below.')
+            categories = Category.objects.annotate(subcategory_count=Count('subcategories')).order_by('name')
+            subcategories = SubCategory.objects.select_related('category').order_by('category__name', 'name')
+            context = {
+                'categories': categories,
+                'subcategories': subcategories,
+                'category_form': form, # Pass the invalid form back
+                'add_subcategory_form': SubCategoryForm() # Provide empty subcategory form
+            }
+            return render(request, 'staff/category_management.html', context)
+            
+    # GET request should ideally not happen if using modals, but redirect as fallback
     return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
 def edit_category(request):
+    # This view still needs proper GET handling for editing
     if request.method == 'POST':
         category_id = request.POST.get('category_id')
         category = get_object_or_404(Category, id=category_id)
-        
-        # Get form data
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        
-        # Validate data
-        if not name:
-            messages.error(request, "Category name is required.")
-            return redirect('Staff:category_management')
-        
-        # Update category
-        category.name = name
-        category.description = description
-        
-        # Handle image upload if provided
-        if 'image' in request.FILES:
-            category.image = request.FILES['image']
-        
-        # Save changes
-        category.save()
-        
-        messages.success(request, f'Category "{category.name}" has been updated successfully.')
-        return redirect('Staff:category_management')
+        form = CategoryForm(request.POST, request.FILES, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Category "{category.name}" updated successfully.')
+            return redirect('Staff:category_management') # Redirect on successful update
+        else:
+            messages.error(request, 'Error updating category.')
+            # Re-render the page with the invalid form
+            categories = Category.objects.annotate(subcategory_count=Count('subcategories')).order_by('name')
+            subcategories = SubCategory.objects.select_related('category').order_by('category__name', 'name')
+            # How to show *which* category edit failed? Needs more context/modal handling
+            context = {
+                'categories': categories,
+                'subcategories': subcategories,
+                'category_form': CategoryForm(), # Or pass the specific invalid form?
+                'add_subcategory_form': SubCategoryForm(),
+                # Need a way to indicate the edit modal for 'category' should show errors
+            }
+            # return render(request, 'staff/category_management.html', context) # This isn't quite right for edits
+            return redirect('Staff:category_management') # Fallback redirect for now
     
-    # This should be handled by a modal in the category_management.html template
     return redirect('Staff:category_management')
 
 @login_required
@@ -547,83 +569,55 @@ def delete_category(request):
 @user_passes_test(is_staff)
 def add_subcategory(request):
     if request.method == 'POST':
-        # Get form data
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        category_id = request.POST.get('category')
-        
-        # Validate data
-        if not name:
-            messages.error(request, "Subcategory name is required.")
+        form = SubCategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            subcategory = form.save()
+            messages.success(request, f'Subcategory "{subcategory.name}" created successfully.')
             return redirect('Staff:category_management')
-        
-        if not category_id:
-            messages.error(request, "Parent category is required.")
-            return redirect('Staff:category_management')
-        
-        # Get parent category
-        category = get_object_or_404(Category, id=category_id)
-        
-        # Create new subcategory
-        subcategory = SubCategory(
-            name=name,
-            description=description,
-            category=category
-        )
-        
-        # Handle image upload if provided
-        if 'image' in request.FILES:
-            subcategory.image = request.FILES['image']
-        
-        # Save new subcategory
-        subcategory.save()
-        
-        messages.success(request, f'Subcategory "{subcategory.name}" has been created successfully.')
-        return redirect('Staff:category_management')
+        else:
+            # Form is invalid, re-render the management page with the invalid form and errors
+            messages.error(request, 'Error adding subcategory. Please correct the errors below.')
+            categories = Category.objects.annotate(subcategory_count=Count('subcategories')).order_by('name')
+            subcategories = SubCategory.objects.select_related('category').order_by('category__name', 'name')
+            context = {
+                'categories': categories,
+                'subcategories': subcategories,
+                'category_form': CategoryForm(),
+                'add_subcategory_form': form
+            }
+            return render(request, 'staff/category_management.html', context)
     
-    # This should be handled by a modal in the category_management.html template
+    # GET request should ideally not happen if using modals, but redirect as fallback
     return redirect('Staff:category_management')
 
 @login_required
 @user_passes_test(is_staff)
 def edit_subcategory(request):
+    # This view still needs proper GET handling for editing
     if request.method == 'POST':
         subcategory_id = request.POST.get('subcategory_id')
         subcategory = get_object_or_404(SubCategory, id=subcategory_id)
-        
-        # Get form data
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        category_id = request.POST.get('category')
-        
-        # Validate data
-        if not name:
-            messages.error(request, "Subcategory name is required.")
-            return redirect('Staff:category_management')
-        
-        if not category_id:
-            messages.error(request, "Parent category is required.")
-            return redirect('Staff:category_management')
-        
-        # Get parent category
-        category = get_object_or_404(Category, id=category_id)
-        
-        # Update subcategory
-        subcategory.name = name
-        subcategory.description = description
-        subcategory.category = category
-        
-        # Handle image upload if provided
-        if 'image' in request.FILES:
-            subcategory.image = request.FILES['image']
-        
-        # Save changes
-        subcategory.save()
-        
-        messages.success(request, f'Subcategory "{subcategory.name}" has been updated successfully.')
-        return redirect('Staff:category_management')
+        form = SubCategoryForm(request.POST, request.FILES, instance=subcategory)
+        if form.is_valid():
+             form.save()
+             messages.success(request, f'Subcategory "{subcategory.name}" updated successfully.')
+             return redirect('Staff:category_management') # Redirect on success
+        else:
+             messages.error(request, 'Error updating subcategory.')
+             # Re-render the page with the invalid form
+             categories = Category.objects.annotate(subcategory_count=Count('subcategories')).order_by('name')
+             subcategories = SubCategory.objects.select_related('category').order_by('category__name', 'name')
+             # How to show *which* subcategory edit failed?
+             context = {
+                 'categories': categories,
+                 'subcategories': subcategories,
+                 'category_form': CategoryForm(),
+                 'add_subcategory_form': SubCategoryForm(), # Or pass the specific invalid form?
+                 # Need a way to indicate the edit modal for 'subcategory' should show errors
+             }
+             # return render(request, 'staff/category_management.html', context) # Not quite right for edits
+             return redirect('Staff:category_management') # Fallback redirect for now
     
-    # This should be handled by a modal in the category_management.html template
     return redirect('Staff:category_management')
 
 @login_required

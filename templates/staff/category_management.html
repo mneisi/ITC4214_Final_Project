@@ -376,25 +376,31 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addSubcategoryModalLabel">Add Subcategory</h5>
+                <h5 class="modal-title" id="addSubcategoryModalLabel">Add Subcategory to <span id="addSubcategoryParentName"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'Staff:add_subcategory' %}" method="post">
+            <form id="addSubcategoryForm" method="post" action="{% url 'Staff:add_subcategory' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="hidden" name="category_id" id="subcategory_category_id">
                 <div class="modal-body">
-                    <p>Adding subcategory to: <strong id="subcategory_category_name"></strong></p>
-                    <div class="mb-3">
-                        <label for="subcategory_name" class="form-label">Subcategory Name*</label>
-                        <input type="text" class="form-control" id="subcategory_name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="subcategory_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="subcategory_description" name="description" rows="3"></textarea>
-                    </div>
+                    
+                    {# Display Non-Field Errors #}
+                    {% if add_subcategory_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ add_subcategory_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    {# Render Django Form #}
+                    {{ add_subcategory_form.as_p }}
+                    
+                    {# Note: JavaScript will be needed to set the correct #}
+                    {# value for the 'category' field when the modal opens, #}
+                    {# assuming it renders as a select dropdown. #}
+                    {# The existing JS probably uses addSubcategoryCategoryId #}
+
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add Subcategory</button>
                 </div>
             </form>
@@ -480,13 +486,27 @@
         // Add Subcategory Modal
         const addSubcategoryModal = document.getElementById('addSubcategoryModal');
         if (addSubcategoryModal) {
-            addSubcategoryModal.addEventListener('show.bs.modal', function(event) {
+            addSubcategoryModal.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 const categoryId = button.getAttribute('data-category-id');
                 const categoryName = button.getAttribute('data-category-name');
                 
-                document.getElementById('subcategory_category_id').value = categoryId;
-                document.getElementById('subcategory_category_name').textContent = categoryName;
+                const modalTitleSpan = addSubcategoryModal.querySelector('#addSubcategoryParentName');
+                const categoryInput = addSubcategoryModal.querySelector('form select[name="category"]'); // Assuming it renders as select
+                // If it renders differently (e.g., hidden input), adjust the selector above
+                
+                modalTitleSpan.textContent = categoryName;
+                
+                if (categoryInput) {
+                    categoryInput.value = categoryId;
+                    // Optional: If it's a select, you might want to hide it or make it readonly
+                    // categoryInput.style.display = 'none'; // Example: Hide the select
+                    // If hiding, ensure the label is also hidden or removed
+                    // const categoryLabel = addSubcategoryModal.querySelector('label[for="' + categoryInput.id + '"]');
+                    // if (categoryLabel) categoryLabel.style.display = 'none';
+                } else {
+                    console.error("Could not find category input in Add Subcategory form.");
+                }
             });
         }
         

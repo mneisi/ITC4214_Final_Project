@@ -113,23 +113,47 @@ $(document).ready(function() {
     });
     
     // Product quantity selector with improved animation
-    $('.quantity-selector .btn-minus').on('click', function() {
+    // Detach any existing handlers first to prevent duplicates
+    $('.quantity-selector .decrement').off('click'); 
+    $('.quantity-selector .increment').off('click');
+    $('.quantity-selector input[type="number"]').off('change');
+
+    $('.quantity-selector .decrement').on('click', function() { 
         var input = $(this).siblings('input');
         if (input.length) {
             var value = parseInt(input.val()) || 1;
-            if (value > 1) {
+            var min = parseInt(input.attr('min')) || 1;
+            if (value > min) {
                 input.val(value - 1).addClass('quantity-changed');
                 setTimeout(() => input.removeClass('quantity-changed'), 300);
+                input.trigger('change'); 
             }
         }
     });
     
-    $('.quantity-selector .btn-plus').on('click', function() {
+    $('.quantity-selector .increment').on('click', function() { 
         var input = $(this).siblings('input');
         if (input.length) {
             var value = parseInt(input.val()) || 1;
-            input.val(value + 1).addClass('quantity-changed');
-            setTimeout(() => input.removeClass('quantity-changed'), 300);
+            var max = parseInt(input.attr('max')) || Infinity;
+            if (value < max) { 
+                input.val(value + 1).addClass('quantity-changed');
+                setTimeout(() => input.removeClass('quantity-changed'), 300);
+                input.trigger('change');
+            }
+        }
+    });
+    
+    $('.quantity-selector input[type="number"]').on('change', function() {
+        var input = $(this);
+        var value = parseInt(input.val()) || 1;
+        var min = parseInt(input.attr('min')) || 1;
+        var max = parseInt(input.attr('max')) || Infinity;
+        if (value < min) {
+            input.val(min);
+        }
+        if (value > max) {
+            input.val(max);
         }
     });
     
