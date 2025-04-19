@@ -1,8 +1,3 @@
-/**
- * SoundSphere Product Detail Page Script
- * Handles image gallery, quantity selection, reviews, and other product detail interactions
- */
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Product detail script loaded");
     
@@ -20,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Related products slider (if exists)
     initRelatedProducts();
+    
+    // AJAX add to cart functionality
+    initAjaxAddToCart();
 });
 
 /**
@@ -256,7 +254,7 @@ function initProductTabs() {
 /**
  * Load recommended products content
  */
-function loadRecommendedProducts() {
+function loadRecommendedProducts(url) {
     const recommendedContainer = document.getElementById('recommended-products');
     const relatedProductsTab = document.getElementById('recommended');
     
@@ -265,11 +263,10 @@ function loadRecommendedProducts() {
         return;
     }
     
-    const dataUrl = relatedProductsTab.getAttribute('data-url');
-    console.log("Loading recommended products from:", dataUrl);
+    console.log("Loading recommended products from:", url);
     
-    if (!dataUrl) {
-        console.warn("No data-url attribute found on recommended tab");
+    if (!url) {
+        console.warn("No url provided for recommended products");
         return;
     }
     
@@ -289,7 +286,7 @@ function loadRecommendedProducts() {
     `;
     
     // Load recommended products via AJAX
-    fetch(dataUrl)
+    fetch(url)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -394,6 +391,102 @@ function initProductCardEffects() {
  * Initialize related products section
  */
 function initRelatedProducts() {
-    // Related products are now loaded when the tab is shown
-    console.log("Related products initialized");
+    console.log("Related products init");
+    // Load recommended products when tab is clicked
+    const recommendedTab = document.getElementById('recommended-tab');
+    if (recommendedTab) {
+        recommendedTab.addEventListener('click', function() {
+            const recommendedContent = document.getElementById('recommended');
+            if (recommendedContent && recommendedContent.dataset.url) {
+                if (recommendedContent.getAttribute('data-loaded') !== 'true') {
+                    loadRecommendedProducts(recommendedContent.dataset.url);
+                    recommendedContent.setAttribute('data-loaded', 'true');
+                }
+            }
+        });
+    }
+}
+
+/**
+ * Initialize AJAX Add to Cart functionality
+ */
+function initAjaxAddToCart() {
+    const addToCartForm = document.querySelector('form[action*="add_to_cart"]');
+    
+    console.log("AJAX Add to Cart init:", addToCartForm ? "Form found" : "Form not found");
+    
+    if (!addToCartForm) return;
+    
+    addToCartForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const productId = addToCartForm.action.split('/').pop();
+        const quantityInput = document.getElementById('quantity');
+        const quantity = quantityInput ? quantityInput.value : 1;
+        const submitBtn = addToCartForm.querySelector('button[type="submit"]');
+        
+        // Show loading state
+        if (submitBtn) {
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            submitBtn.disabled = true;
+        }
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('quantity', quantity);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        // Send AJAX request
+        fetch(addToCartForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count in navbar
+                const cartCountBadge = document.getElementById('cart-count');
+                if (cartCountBadge) {
+                    cartCountBadge.textContent = data.cart_count;
+                    cartCountBadge.classList.remove('d-none');
+                }
+                
+                // Show success toast
+                if (typeof toastSystem !== 'undefined') {
+                    toastSystem.success('Item added to your cart!');
+                }
+                
+                // Add animation to the cart icon
+                const cartIcon = document.querySelector('.nav-link i.fa-shopping-cart');
+                if (cartIcon) {
+                    cartIcon.classList.add('cart-bounce');
+                    setTimeout(() => {
+                        cartIcon.classList.remove('cart-bounce');
+                    }, 1000);
+                }
+            } else {
+                // Show error message
+                if (typeof toastSystem !== 'undefined') {
+                    toastSystem.error(data.message || 'Error adding item to cart');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (typeof toastSystem !== 'undefined') {
+                toastSystem.error('An error occurred. Please try again.');
+            }
+        })
+        .finally(() => {
+            // Restore button state
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Add to Cart';
+                submitBtn.disabled = false;
+            }
+        });
+    });
 } 

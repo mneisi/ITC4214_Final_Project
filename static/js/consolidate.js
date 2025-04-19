@@ -1,8 +1,3 @@
-/**
- * SoundSphere - AI Feature Integration
- * This script provides AI chatbot and search functionality
- */
-
 // AI Search Functionality
 const aiSearchInit = () => {
     const searchTrigger = document.querySelector('.ai-search-trigger');

@@ -48,7 +48,7 @@ class Product(models.Model):
     )
     
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
-    subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='products')
+    subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     brand = models.CharField(max_length=100)
@@ -64,6 +64,7 @@ class Product(models.Model):
     featured = models.BooleanField(default=False)
     bestseller = models.BooleanField(default=False)
     new_arrival = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     warranty = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

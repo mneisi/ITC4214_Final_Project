@@ -607,285 +607,193 @@ $(document).ready(function() {
         }
     }
     
-    // Voice input functionality - can be implemented later
-    if (voiceButton) {
-        voiceButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Voice search is coming soon!');
-        });
-    }
-    
-    // Chatbot Functionality
-    const chatbotToggle = document.getElementById('chatbotToggle');
-    const chatbotWindow = document.getElementById('chatbotWindow');
-    const chatbotClose = document.getElementById('chatbotClose');
-    const chatbotBody = document.getElementById('chatbotBody');
-    const chatbotInput = document.getElementById('chatbotInput');
-    const sendMessageButton = document.getElementById('sendMessageButton');
-    const voiceInputButton = document.getElementById('voiceInputButton');
-    const suggestionChips = document.querySelectorAll('.suggestion-chip');
-    
-    // Toggle chatbot window
-    if (chatbotToggle && chatbotWindow) {
-        chatbotToggle.addEventListener('click', function() {
-            if (chatbotWindow.style.display === 'flex') {
-                chatbotWindow.style.display = 'none';
-            } else {
-                chatbotWindow.style.display = 'flex';
-                if (chatbotInput) chatbotInput.focus();
-            }
-        });
-    }
-    
-    // Close chatbot window
-    if (chatbotClose && chatbotWindow) {
-        chatbotClose.addEventListener('click', function() {
-            chatbotWindow.style.display = 'none';
-        });
-    }
-    
-    // Send message when clicking the send button
-    if (sendMessageButton) {
-        sendMessageButton.addEventListener('click', function() {
-            sendMessage();
-        });
-    }
-    
-    // Send message on Enter key
-    if (chatbotInput) {
-        chatbotInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
-    
-    // Handle suggestion chip clicks
-    if (suggestionChips.length) {
-        suggestionChips.forEach(chip => {
-            chip.addEventListener('click', function() {
-                const chipText = this.textContent;
-                if (chatbotInput) chatbotInput.value = chipText;
-                sendMessage();
-            });
-        });
-    }
-    
-    // Voice input in chatbot - can be implemented later
-    if (voiceInputButton) {
-        voiceInputButton.addEventListener('click', function() {
-            alert('Voice input is coming soon!');
-        });
-    }
-    
-    // Function to send a message
-    function sendMessage() {
-        if (!chatbotInput || !chatbotBody) return;
-        
-        const message = chatbotInput.value.trim();
-        if (message) {
-            // Add user message
-            addMessage(message, 'user');
-            chatbotInput.value = '';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Simulate bot response after a delay
-            setTimeout(() => {
-                removeTypingIndicator();
-                
-                // Generate bot response based on message
-                let botResponse = generateBotResponse(message);
-                addMessage(botResponse, 'bot');
-                
-                // Scroll to bottom
-                chatbotBody.scrollTop = chatbotBody.scrollHeight;
-            }, 1500);
-        }
-    }
-    
-    // Function to add a message to the chat
-    function addMessage(text, sender) {
-        if (!chatbotBody) return;
-        
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${sender}-message`;
-        
-        // Format links in text
-        const formattedText = formatLinks(text);
-        
-        messageElement.innerHTML = `
-            ${formattedText}
-            <span class="message-time">${getCurrentTime()}</span>
-        `;
-        
-        chatbotBody.appendChild(messageElement);
-        chatbotBody.scrollTop = chatbotBody.scrollHeight;
-    }
-    
-    // Show bot typing indicator
-    function showTypingIndicator() {
-        if (!chatbotBody) return;
-        
-        const typingElement = document.createElement('div');
-        typingElement.className = 'bot-typing';
-        typingElement.id = 'botTyping';
-        typingElement.innerHTML = `
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        `;
-        
-        chatbotBody.appendChild(typingElement);
-        chatbotBody.scrollTop = chatbotBody.scrollHeight;
-    }
-    
-    // Remove typing indicator
-    function removeTypingIndicator() {
-        const typingElement = document.getElementById('botTyping');
-        if (typingElement) {
-            typingElement.remove();
-        }
-    }
-    
-    // Get current time formatted
-    function getCurrentTime() {
-        const now = new Date();
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        
-        hours = hours % 12;
-        hours = hours ? hours : 12; // Convert 0 to 12
-        
-        return `${hours}:${minutes} ${ampm}`;
-    }
-    
-    // Format links in text
-    function formatLinks(text) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
-    }
-    
-    // Generate bot response based on user input
-    function generateBotResponse(message) {
-        message = message.toLowerCase();
-        
-        if (message.includes('beginner') && (message.includes('instrument') || message.includes('instruments'))) {
-            return "For beginners, I recommend trying the ukulele, piano keyboard, or acoustic guitar. The ukulele is small and relatively easy to learn. A keyboard allows you to see notes visually, and acoustic guitars are versatile but require a bit more finger strength.";
-        }
-        else if (message.includes('guitar') && (message.includes('choose') || message.includes('recommend'))) {
-            return "To help you choose the right guitar, I'll need to know a few things: Are you a beginner? Are you interested in acoustic or electric? What's your budget? What music style do you prefer? For beginners, I often recommend the Yamaha FG800 acoustic ($200-300) or the Squier Stratocaster electric starter pack ($250-350).";
-        }
-        else if (message.includes('home studio') || message.includes('recording')) {
-            return "For a basic home studio setup, you'll need: an audio interface (like the Focusrite Scarlett Solo), a microphone (Shure SM58 for vocals or SM57 for instruments), studio monitors or good headphones, and a Digital Audio Workstation (DAW) software. Would you like specific recommendations based on your budget?";
-        }
-        else if (message.includes('maintenance') || message.includes('care')) {
-            return "Regular instrument maintenance is crucial! For string instruments, wipe them down after playing, change strings periodically, and store in a case with proper humidity. For wind instruments, clean mouthpieces regularly and swab internal moisture. For electronic equipment, keep away from extreme temperatures and dust. Would you like specific care tips for a particular instrument?";
-        }
-        else if (message.includes('piano') || message.includes('keyboard')) {
-            return "Digital pianos and keyboards are great for beginners and experienced players alike. For beginners, I recommend the Yamaha P-45 ($500) or Casio CDP-S100 ($450) for weighted keys at an affordable price. More advanced players might prefer the Roland FP-30X ($700) or Yamaha P-125 ($650) for better sound and touch sensitivity.";
-        }
-        else if (message.includes('microphone') || message.includes('mic')) {
-            return "The best microphone depends on your needs. For vocals, the Shure SM58 ($99) is an industry standard dynamic mic, while the Audio-Technica AT2020 ($99) is a great condenser for studio recording. For podcasts, the Blue Yeti ($130) is popular. For higher-end vocal recording, consider the Rode NT1 ($269) or Shure SM7B ($399).";
-        }
-        else if (message.includes('drum') || message.includes('percussion')) {
-            return "For beginners interested in drums, electronic drum kits are often a good starting point as they're quieter and apartment-friendly. The Alesis Nitro Mesh Kit ($379) offers good value. If you prefer acoustic, consider starting with a practice pad and sticks, then perhaps a snare drum before investing in a full kit.";
-        }
-        else if (message.includes('price') || message.includes('cost') || message.includes('budget')) {
-            return "We have instruments at every price point! Entry-level quality instruments typically start around $150-300 for guitars, $400-600 for digital pianos, $300-500 for beginner drum kits, and $100-300 for basic recording equipment. Premium instruments can range from $1000-3000+. What's your budget and what instrument are you interested in?";
-        }
-        else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-            return "Hello there! How can I help you today? I can recommend instruments, answer questions about musical equipment, or help you find the perfect gear for your needs.";
-        }
-        else {
-            return "Thanks for your message! I can help with instrument recommendations, answer questions about musical equipment, provide maintenance tips, or offer guidance for beginners. Feel free to ask about specific instruments, brands, or music topics you're interested in.";
-        }
-    }
-    
-    // Initialize the chatbot/search if elements exist
-    if (chatbotToggle && chatbotWindow) {
-        // Show the chatbot after 3 seconds for new visitors, but only on first visit
-        if (!localStorage.getItem('chatbotShown')) {
-            setTimeout(() => {
-                chatbotWindow.style.display = 'flex';
-                localStorage.setItem('chatbotShown', 'true');
-            }, 3000);
-        }
-    }
+    // Initialize AI Search related functionality
+    initAISearch();
 
-    /**
-     * Initialize Newsletter Subscription
-     * Handles AJAX form submission for newsletter subscription
-     */
-    function initNewsletterSubscription() {
-        const newsletterForms = document.querySelectorAll('#newsletterForm, #footerNewsletterForm');
-        
-        newsletterForms.forEach(form => {
-            if (!form) return;
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Get form data
-                const formData = new FormData(this);
-                const messageDiv = this.id === 'newsletterForm' ? 
-                    document.getElementById('newsletter-message') : 
-                    document.getElementById('footer-newsletter-message');
-                
-                // Disable submit button during submission
-                const submitButton = this.querySelector('button[type="submit"]');
-                const originalButtonText = submitButton.textContent;
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Subscribing...';
-                
-                // Send AJAX request
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Show success or error message
-                    if (data.success) {
-                        messageDiv.innerHTML = `<div class="alert alert-success mt-3">${data.message || 'Thank you for subscribing!'}</div>`;
-                        this.reset();
-                    } else {
-                        messageDiv.innerHTML = `<div class="alert alert-warning mt-3">${data.message || 'An error occurred. Please try again.'}</div>`;
-                    }
-                    
-                    // Re-enable submit button
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalButtonText;
-                    
-                    // Hide message after 5 seconds
-                    setTimeout(() => {
-                        messageDiv.innerHTML = '';
-                    }, 5000);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    messageDiv.innerHTML = '<div class="alert alert-danger mt-3">An error occurred. Please try again later.</div>';
-                    
-                    // Re-enable submit button
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalButtonText;
-                    
-                    // Hide message after 5 seconds
-                    setTimeout(() => {
-                        messageDiv.innerHTML = '';
-                    }, 5000);
-                });
-            });
-        });
-    }
-
-    // Call newsletter initialization in document ready function
+    // Initialize newsletter subscription forms
     initNewsletterSubscription();
-}); 
+});
+
+/**
+ * Initialize AI Search functionality including voice input
+ */
+function initAISearch() {
+    const searchForm = document.querySelector('form.search-form');
+    const searchInput = document.querySelector('.ai-search-input');
+    const voiceButton = document.querySelector('.voice-button');
+    let recognition;
+    let isSearchRecording = false;
+
+    if (!searchForm || !searchInput || !voiceButton) {
+        console.log("AI Search elements not found, skipping initialization.");
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            searchInput.value = transcript;
+            stopSearchRecording();
+            // Automatically submit the search form after getting the transcript
+            searchForm.submit(); 
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Search Speech recognition error:', event.error);
+            stopSearchRecording();
+            // Optionally show a message to the user
+            searchInput.placeholder = "Voice input error. Please try again.";
+            setTimeout(() => { searchInput.placeholder = "Search products or ask a question..."; }, 3000);
+        };
+
+        recognition.onend = () => {
+            if (isSearchRecording) {
+                stopSearchRecording();
+            }
+        };
+
+        // Ensure the event listener calls the correct function
+        voiceButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default button action
+            toggleSearchRecording(); // Call the function defined within initAISearch
+        });
+
+    } else {
+        console.log('Speech recognition not supported for search bar.');
+        voiceButton.disabled = true;
+        voiceButton.title = 'Voice input not supported';
+    }
+
+    function startSearchRecording() {
+        if (recognition && !isSearchRecording) {
+            try {
+                searchInput.value = ''; // Clear input field
+                searchInput.placeholder = 'Listening...';
+                voiceButton.classList.add('recording');
+                recognition.start();
+                isSearchRecording = true;
+                console.log("Search recording started...");
+            } catch (error) {
+                console.error('Error starting search speech recognition:', error);
+                stopSearchRecording(); // Ensure state is reset
+            }
+        }
+    }
+
+    function stopSearchRecording() {
+        if (recognition && isSearchRecording) {
+            isSearchRecording = false;
+            searchInput.placeholder = 'Search products or ask a question...';
+            voiceButton.classList.remove('recording');
+            try {
+                recognition.stop();
+                console.log("Search recording stopped.");
+            } catch (error) {
+                 if (error.name !== 'InvalidStateError') {
+                    console.error('Error stopping search speech recognition:', error);
+                }
+            }
+        }
+    }
+
+    function toggleSearchRecording() {
+        if (isSearchRecording) {
+            stopSearchRecording();
+        } else {
+            startSearchRecording();
+        }
+    }
+}
+
+/**
+ * Initialize Newsletter Subscription
+ * Handles AJAX form submission for newsletter subscription
+ */
+function initNewsletterSubscription() {
+    const newsletterForms = document.querySelectorAll('#newsletterForm, #footerNewsletterForm');
+        
+    newsletterForms.forEach(form => {
+        if (!form) return;
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const messageDiv = this.id === 'newsletterForm' ? 
+                document.getElementById('newsletter-message') : 
+                document.getElementById('footer-newsletter-message');
+            
+            // Disable submit button during submission
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Subscribing...';
+            
+            // Send AJAX request
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken() // Ensure CSRF token is sent
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show success or error message
+                if (data.success) {
+                    messageDiv.innerHTML = `<div class="alert alert-success mt-3">${data.message || 'Thank you for subscribing!'}</div>`;
+                    this.reset();
+                } else {
+                    messageDiv.innerHTML = `<div class="alert alert-warning mt-3">${data.message || 'An error occurred. Please try again.'}</div>`;
+                }
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 5000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.innerHTML = '<div class="alert alert-danger mt-3">An error occurred. Please try again later.</div>';
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 5000);
+            });
+        });
+    });
+}
+
+// Helper function to get CSRF token (can be shared or duplicated)
+function getCsrfToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+} 

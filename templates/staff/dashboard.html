@@ -303,5 +303,18 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{{ sales_data|json_script:"salesData" }}
+{{ category_names|json_script:"categoryNames" }}
+{{ category_sales|json_script:"categorySales" }}
+{{ device_data|json_script:"deviceData" }}
+
+<script>
+    // Access data from script tags
+    window.categoryNames = JSON.parse(document.getElementById('categoryNames').textContent);
+    window.categorySales = JSON.parse(document.getElementById('categorySales').textContent);
+    window.deviceData = JSON.parse(document.getElementById('deviceData').textContent);
+</script>
+
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %} 

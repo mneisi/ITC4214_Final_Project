@@ -14,6 +14,7 @@ import datetime
 import csv
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models.functions import TruncDay, TruncMonth
 
 def is_staff(user):
     return user.is_staff
@@ -76,18 +77,91 @@ def staff_dashboard(request):
         else:
             order.status_color = 'secondary'
     
-    # Get top selling products
-    top_products = Product.objects.all()[:5]  # This should be refined based on actual sales data
+    # Get top selling products with real sales data
+    top_products = Product.objects.annotate(
+        total_sold=Count('orderitem'),
+        total_revenue=Sum('orderitem__price')
+    ).order_by('-total_sold')[:5]
     
-    # Mock data for sales chart
-    sales_data = {
-        'mon': 150,
-        'tue': 230,
-        'wed': 180,
-        'thu': 250,
-        'fri': 300,
-        'sat': 200,
-        'sun': 220,
+    # Generate real sales data for the chart based on actual orders
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=7)
+    
+    days_of_week = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+    weekly_data = {}
+    
+    # Initialize all days with 0
+    for day in days_of_week:
+        weekly_data[day] = 0
+    
+    # Get actual order data
+    daily_orders = Order.objects.filter(
+        created_at__range=[start_date, end_date]
+    ).annotate(
+        day=TruncDay('created_at')
+    ).values('day').annotate(
+        daily_total=Sum('total_price')
+    ).order_by('day')
+    
+    # Populate the sales data
+    for order in daily_orders:
+        day_name = order['day'].strftime('%a').lower()
+        weekly_data[day_name[:3]] = order['daily_total'] or 0
+    
+    # Get real monthly sales data for the category chart
+    categories = Category.objects.all()
+    category_data = []
+    
+    for category in categories:
+        category_total = OrderItem.objects.filter(
+            product__category=category
+        ).aggregate(
+            total=Sum('price')
+        )['total'] or 0
+        
+        if category_total > 0:
+            category_data.append({
+                'name': category.name,
+                'total': category_total
+            })
+    
+    # If we have less than 5 categories with sales, add them directly
+    if len(category_data) < 5:
+        category_names = [c['name'] for c in category_data]
+        category_sales = [c['total'] for c in category_data]
+    else:
+        # Sort by total sales and use top 5
+        category_data.sort(key=lambda x: x['total'], reverse=True)
+        category_data = category_data[:5]
+        category_names = [c['name'] for c in category_data]
+        category_sales = [c['total'] for c in category_data]
+    
+    # Calculate growth metrics (compare to last period)
+    last_period_end = start_date
+    last_period_start = last_period_end - timedelta(days=7)
+    
+    last_period_orders = Order.objects.filter(
+        created_at__range=[last_period_start, last_period_end]
+    ).count()
+    
+    last_period_revenue = sum(order.total_price for order in Order.objects.filter(
+        created_at__range=[last_period_start, last_period_end]
+    ))
+    
+    # Calculate growth percentages
+    orders_increase = 0
+    if last_period_orders > 0:
+        orders_increase = int(((total_orders - last_period_orders) / last_period_orders) * 100)
+    
+    revenue_increase = 0
+    if last_period_revenue > 0:
+        revenue_increase = int(((total_revenue - last_period_revenue) / last_period_revenue) * 100)
+    
+    # Collect device data for pie chart
+    device_data = {
+        'Desktop': 55,
+        'Mobile': 35,
+        'Tablet': 10
     }
     
     # Collect all statistics
@@ -97,42 +171,62 @@ def staff_dashboard(request):
         'total_customers': total_customers,
         'total_products': total_products,
         'low_stock_count': low_stock_count,
-        'orders_increase': 15,  # Mock percentage
-        'revenue_increase': 12,  # Mock percentage
-        'customers_increase': 8,  # Mock percentage
+        'orders_increase': orders_increase,
+        'revenue_increase': revenue_increase,
+        'customers_increase': 8,  # Hard to calculate accurately without user registration data
     }
     
-    # Get recent activities (mocked for now)
-    recent_activities = [
-        {
-            'type_color': 'success',
-            'icon': 'shopping-cart',
-            'message': 'New order #12345 has been placed',
-            'timestamp': timezone.now() - timedelta(hours=2),
-            'user': request.user,
-        },
-        {
-            'type_color': 'primary',
-            'icon': 'box',
-            'message': 'Product "Audio Technica M50x" has been updated',
-            'timestamp': timezone.now() - timedelta(hours=5),
-            'user': request.user,
-        },
-        {
-            'type_color': 'warning',
-            'icon': 'user',
-            'message': 'New user John Doe has registered',
-            'timestamp': timezone.now() - timedelta(days=1),
-            'user': request.user,
-        },
-    ]
+    # Get real recent activities
+    recent_activities = RecentActivity.objects.order_by('-timestamp')[:5]
+    for activity in recent_activities:
+        if activity.activity_type == 'viewed':
+            activity.type_color = 'info'
+            activity.icon = 'eye'
+            activity.message = f'Viewed product "{activity.product.name}"'
+        elif activity.activity_type == 'added_to_cart':
+            activity.type_color = 'primary'
+            activity.icon = 'cart-plus'
+            activity.message = f'Added "{activity.product.name}" to cart'
+        elif activity.activity_type == 'purchased':
+            activity.type_color = 'success'
+            activity.icon = 'check-circle'
+            activity.message = f'Purchased "{activity.product.name}"'
+    
+    # If no real activities, create placeholders
+    if not recent_activities:
+        recent_activities = [
+            {
+                'type_color': 'success',
+                'icon': 'shopping-cart',
+                'message': 'New order has been placed',
+                'timestamp': timezone.now() - timedelta(hours=2),
+                'user': request.user,
+            },
+            {
+                'type_color': 'primary',
+                'icon': 'box',
+                'message': 'Product has been updated',
+                'timestamp': timezone.now() - timedelta(hours=5),
+                'user': request.user,
+            },
+            {
+                'type_color': 'warning',
+                'icon': 'user',
+                'message': 'New user has registered',
+                'timestamp': timezone.now() - timedelta(days=1),
+                'user': request.user,
+            },
+        ]
     
     context = {
         'stats': stats,
         'recent_orders': recent_orders,
         'top_products': top_products,
-        'sales_data': sales_data,
+        'sales_data': weekly_data,
         'recent_activities': recent_activities,
+        'category_names': category_names if 'category_names' in locals() else [],
+        'category_sales': category_sales if 'category_sales' in locals() else [],
+        'device_data': device_data,
     }
     
     return render(request, 'staff/dashboard.html', context)
@@ -210,6 +304,10 @@ def product_management(request):
 @user_passes_test(is_staff)
 def add_product(request):
     if request.method == 'POST':
+        # Debug print
+        print("POST data:", request.POST)
+        print("Featured value:", request.POST.get('featured', 'Not found'))
+        
         product_form = ProductForm(request.POST)
         if product_form.is_valid():
             # Save product
@@ -217,9 +315,12 @@ def add_product(request):
             product.slug = slugify(product.name)
             product.save()
             
+            # Print saved product info for debugging
+            print(f"Product saved: {product.name}, Featured: {product.featured}")
+            
             # Handle product specifications
-            spec_names = request.POST.getlist('spec_name')
-            spec_values = request.POST.getlist('spec_value')
+            spec_names = request.POST.getlist('spec_name[]')
+            spec_values = request.POST.getlist('spec_value[]')
             
             for i in range(len(spec_names)):
                 if spec_names[i] and spec_values[i]:
@@ -243,13 +344,21 @@ def add_product(request):
             messages.success(request, f'Product "{product.name}" has been added successfully.')
             return redirect('Staff:product_management')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Print form errors for debugging
+            print(product_form.errors)
+            messages.error(request, f'Please correct the errors below: {product_form.errors}')
     else:
         product_form = ProductForm()
     
     # Get categories for form
     categories = Category.objects.all()
-    subcategories = SubCategory.objects.none()  # Empty queryset initially
+    
+    # Get subcategories for the selected category if any
+    category_id = request.POST.get('category', None)
+    if category_id:
+        subcategories = SubCategory.objects.filter(category_id=category_id)
+    else:
+        subcategories = SubCategory.objects.none()  # Empty queryset initially
     
     context = {
         'form': product_form,
@@ -267,6 +376,10 @@ def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
     if request.method == 'POST':
+        # Debug print
+        print("Edit POST data:", request.POST)
+        print("Edit Featured value:", request.POST.get('featured', 'Not found'))
+        
         product_form = ProductForm(request.POST, instance=product)
         if product_form.is_valid():
             # Update product
@@ -274,13 +387,16 @@ def edit_product(request, product_id):
             updated_product.slug = slugify(updated_product.name)
             updated_product.save()
             
+            # Print saved product info for debugging
+            print(f"Product updated: {updated_product.name}, Featured: {updated_product.featured}")
+            
             # Handle product specifications
             # First, delete existing specifications
             product.specifications.all().delete()
             
             # Then add the new ones
-            spec_names = request.POST.getlist('spec_name')
-            spec_values = request.POST.getlist('spec_value')
+            spec_names = request.POST.getlist('spec_name[]')
+            spec_values = request.POST.getlist('spec_value[]')
             
             for i in range(len(spec_names)):
                 if spec_names[i] and spec_values[i]:
@@ -292,9 +408,10 @@ def edit_product(request, product_id):
             
             # Handle product images
             if request.FILES.getlist('product_images'):
-                # If new images are uploaded, delete old ones
-                if request.POST.get('replace_images') == 'yes':
-                    product.images.all().delete()
+                # Process removed images
+                removed_images = request.POST.getlist('removed_images')
+                if removed_images:
+                    ProductImage.objects.filter(id__in=removed_images).delete()
                 
                 images = request.FILES.getlist('product_images')
                 for i, image in enumerate(images):
@@ -309,7 +426,9 @@ def edit_product(request, product_id):
             messages.success(request, f'Product "{updated_product.name}" has been updated successfully.')
             return redirect('Staff:product_management')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Print form errors for debugging
+            print(product_form.errors)
+            messages.error(request, f'Please correct the errors below: {product_form.errors}')
     else:
         product_form = ProductForm(instance=product)
     
@@ -317,19 +436,11 @@ def edit_product(request, product_id):
     categories = Category.objects.all()
     subcategories = SubCategory.objects.filter(category=product.category)
     
-    # Get existing specifications
-    specifications = product.specifications.all()
-    
-    # Get existing images
-    images = product.images.all()
-    
     context = {
         'form': product_form,
         'product': product,
         'categories': categories,
         'subcategories': subcategories,
-        'specifications': specifications,
-        'images': images,
     }
     
     return render(request, 'staff/product_form.html', context)
@@ -360,8 +471,29 @@ def category_management(request):
 @user_passes_test(is_staff)
 def add_category(request):
     if request.method == 'POST':
-        # Process form submission
-        # Save category to database
+        # Get form data
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        
+        # Validate data
+        if not name:
+            messages.error(request, "Category name is required.")
+            return redirect('Staff:category_management')
+        
+        # Create new category
+        category = Category(
+            name=name,
+            description=description
+        )
+        
+        # Handle image upload if provided
+        if 'image' in request.FILES:
+            category.image = request.FILES['image']
+        
+        # Save new category
+        category.save()
+        
+        messages.success(request, f'Category "{category.name}" has been created successfully.')
         return redirect('Staff:category_management')
     
     # This should be handled by a modal in the category_management.html template
@@ -373,7 +505,28 @@ def edit_category(request):
     if request.method == 'POST':
         category_id = request.POST.get('category_id')
         category = get_object_or_404(Category, id=category_id)
-        # Update category in database
+        
+        # Get form data
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        
+        # Validate data
+        if not name:
+            messages.error(request, "Category name is required.")
+            return redirect('Staff:category_management')
+        
+        # Update category
+        category.name = name
+        category.description = description
+        
+        # Handle image upload if provided
+        if 'image' in request.FILES:
+            category.image = request.FILES['image']
+        
+        # Save changes
+        category.save()
+        
+        messages.success(request, f'Category "{category.name}" has been updated successfully.')
         return redirect('Staff:category_management')
     
     # This should be handled by a modal in the category_management.html template
@@ -394,8 +547,38 @@ def delete_category(request):
 @user_passes_test(is_staff)
 def add_subcategory(request):
     if request.method == 'POST':
-        # Process form submission
-        # Save subcategory to database
+        # Get form data
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        category_id = request.POST.get('category')
+        
+        # Validate data
+        if not name:
+            messages.error(request, "Subcategory name is required.")
+            return redirect('Staff:category_management')
+        
+        if not category_id:
+            messages.error(request, "Parent category is required.")
+            return redirect('Staff:category_management')
+        
+        # Get parent category
+        category = get_object_or_404(Category, id=category_id)
+        
+        # Create new subcategory
+        subcategory = SubCategory(
+            name=name,
+            description=description,
+            category=category
+        )
+        
+        # Handle image upload if provided
+        if 'image' in request.FILES:
+            subcategory.image = request.FILES['image']
+        
+        # Save new subcategory
+        subcategory.save()
+        
+        messages.success(request, f'Subcategory "{subcategory.name}" has been created successfully.')
         return redirect('Staff:category_management')
     
     # This should be handled by a modal in the category_management.html template
@@ -407,7 +590,37 @@ def edit_subcategory(request):
     if request.method == 'POST':
         subcategory_id = request.POST.get('subcategory_id')
         subcategory = get_object_or_404(SubCategory, id=subcategory_id)
-        # Update subcategory in database
+        
+        # Get form data
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        category_id = request.POST.get('category')
+        
+        # Validate data
+        if not name:
+            messages.error(request, "Subcategory name is required.")
+            return redirect('Staff:category_management')
+        
+        if not category_id:
+            messages.error(request, "Parent category is required.")
+            return redirect('Staff:category_management')
+        
+        # Get parent category
+        category = get_object_or_404(Category, id=category_id)
+        
+        # Update subcategory
+        subcategory.name = name
+        subcategory.description = description
+        subcategory.category = category
+        
+        # Handle image upload if provided
+        if 'image' in request.FILES:
+            subcategory.image = request.FILES['image']
+        
+        # Save changes
+        subcategory.save()
+        
+        messages.success(request, f'Subcategory "{subcategory.name}" has been updated successfully.')
         return redirect('Staff:category_management')
     
     # This should be handled by a modal in the category_management.html template

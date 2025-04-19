@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="col-lg-6 mt-5 mt-lg-0 text-center animate-slide-up">
-                <img src="{% static 'images/hero-headphones.jpg' %}" alt="Premium Headphones" class="img-fluid rounded-2xl shadow-lg">
+                <img src="{% static 'images/hero.png' %}" alt="Premium Headphones" class="img-fluid rounded-2xl shadow-lg">
             </div>
         </div>
     </div>
@@ -134,142 +134,6 @@
     </div>
 </section>
 
-<!-- Bestsellers Section -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="section-title border-bottom-gradient text-center mb-5">Bestsellers</h2>
-        
-        <div class="row g-4">
-            {% for product in bestsellers %}
-            <div class="col-md-6 col-lg-3">
-                <div class="card product-card h-100">
-                    <span class="product-badge badge-sale">Bestseller</span>
-                    <div class="card-img-container">
-                        {% if product.images.filter.first %}
-                            <img src="{{ product.images.filter.first.image.url }}" alt="{{ product.name }}">
-                        {% else %}
-                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        <h5 class="product-title">{{ product.name }}</h5>
-                        <div class="rating">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= product.avg_rating|floatformat:"0" %}
-                                    <i class="fas fa-star"></i>
-                                {% elif forloop.counter <= product.avg_rating|add:"0.5"|floatformat:"0" %}
-                                    <i class="fas fa-star-half-alt"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span class="ms-2 text-muted">({{ product.rating_count }})</span>
-                        </div>
-                        {% if product.sale_price %}
-                            <p class="mb-0">
-                                <span class="text-decoration-line-through text-muted me-2">${{ product.price }}</span>
-                                <span class="text-danger fw-bold product-price">${{ product.sale_price }}</span>
-                            </p>
-                        {% else %}
-                            <p class="mb-0 product-price">${{ product.price }}</p>
-                        {% endif %}
-                        <p class="text-muted small mb-0">{{ product.brand }}</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <a href="{% url 'Store:product_detail' product.slug %}" class="btn btn-primary">Details</a>
-                            {% if product.availability == "In Stock" %}
-                                <form action="{% url 'ShoppingCart:add_to_cart' product.id %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </button>
-                                </form>
-                            {% else %}
-                                <span class="badge bg-secondary">{{ product.availability }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">
-                    No bestselling products available at the moment. Check back soon!
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-
-<!-- New Arrivals Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="section-title border-bottom-gradient text-center mb-5">New Arrivals</h2>
-        
-        <div class="row g-4">
-            {% for product in new_arrivals %}
-            <div class="col-md-6 col-lg-3">
-                <div class="card product-card h-100">
-                    <span class="product-badge badge-new">New</span>
-                    <div class="card-img-container">
-                        {% if product.images.filter.first %}
-                            <img src="{{ product.images.filter.first.image.url }}" alt="{{ product.name }}">
-                        {% else %}
-                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        <h5 class="product-title">{{ product.name }}</h5>
-                        <div class="rating">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= product.avg_rating|floatformat:"0" %}
-                                    <i class="fas fa-star"></i>
-                                {% elif forloop.counter <= product.avg_rating|add:"0.5"|floatformat:"0" %}
-                                    <i class="fas fa-star-half-alt"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span class="ms-2 text-muted">({{ product.rating_count }})</span>
-                        </div>
-                        {% if product.sale_price %}
-                            <p class="mb-0">
-                                <span class="text-decoration-line-through text-muted me-2">${{ product.price }}</span>
-                                <span class="text-danger fw-bold product-price">${{ product.sale_price }}</span>
-                            </p>
-                        {% else %}
-                            <p class="mb-0 product-price">${{ product.price }}</p>
-                        {% endif %}
-                        <p class="text-muted small mb-0">{{ product.brand }}</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <a href="{% url 'Store:product_detail' product.slug %}" class="btn btn-primary">Details</a>
-                            {% if product.availability == "In Stock" %}
-                                <form action="{% url 'ShoppingCart:add_to_cart' product.id %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </button>
-                                </form>
-                            {% else %}
-                                <span class="badge bg-secondary">{{ product.availability }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">
-                    No new arrivals available at the moment. Check back soon!
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-
 <!-- Features Section -->
 <section class="py-5">
     <div class="container">
@@ -300,27 +164,6 @@
                     <h4>24/7 Support</h4>
                     <p class="text-muted mb-0">Our customer support team is available around the clock to assist with any queries.</p>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Newsletter Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <h2 class="mb-4">Subscribe to Our Newsletter</h2>
-                <p class="text-muted mb-4">Stay updated with the latest products, exclusive offers, and audio tips.</p>
-                <form id="newsletterForm" action="{% url 'Home:subscribe_newsletter' %}" method="post">
-                    {% csrf_token %}
-                    <div class="input-group mb-3 mx-auto" style="max-width: 500px;">
-                        <input type="email" name="email" class="form-control" placeholder="Enter your email address" aria-label="Email address" required>
-                        <button class="btn btn-primary" type="submit">Subscribe</button>
-                    </div>
-                </form>
-                <div id="newsletter-message"></div>
-                <p class="small text-muted mt-2">By subscribing, you agree to receive marketing emails from SoundSphere.</p>
             </div>
         </div>
     </div>

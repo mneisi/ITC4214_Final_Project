@@ -19,7 +19,7 @@
     
     {% load static %}
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/modern.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
     
     {% block extra_css %}{% endblock %}
@@ -60,12 +60,7 @@
                             {% endfor %}
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/about/' %}active{% endif %}" href="{% url 'Home:about' %}">About Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/contact/' %}active{% endif %}" href="{% url 'Home:contact' %}">Contact</a>
-                    </li>
+        
                 </ul>
                 <div class="d-flex align-items-center flex-wrap">
                     <!-- Search Form -->
@@ -133,16 +128,17 @@
                     <a href="{% url 'ShoppingCart:view_cart' %}" class="btn btn-outline position-relative me-3">
                         <i class="fas fa-shopping-cart"></i>
                         {% if request.user.is_authenticated and request.user.cart.total_items > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary cart-count">
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
                             {{ request.user.cart.total_items }}
                         </span>
+                        {% elif cart_count and cart_count > 0 %}
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                            {{ cart_count }}
+                        </span>
                         {% else %}
-                            <!-- Display cart count for anonymous users -->
-                            {% if cart_count and cart_count > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary cart-count">
-                                {{ cart_count }}
-                            </span>
-                            {% endif %}
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary d-none">
+                            0
+                        </span>
                         {% endif %}
                     </a>
                     
@@ -250,15 +246,6 @@
                         <li><a href="#">Accessories</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-                    <h5 class="border-bottom-gradient">Support</h5>
-                    <ul>
-                        <li><a href="{% url 'Home:contact' %}">Contact Us</a></li>
-                        <li><a href="{% url 'Home:order_tracking' %}">Track Order</a></li>
-                        <li><a href="#">Shipping Info</a></li>
-                        <li><a href="#">Returns</a></li>
-                    </ul>
-                </div>
                 <div class="col-lg-4 col-md-6">
                     <h5 class="border-bottom-gradient">Newsletter</h5>
                     <p>Subscribe to get updates on new products and special offers.</p>
@@ -277,13 +264,6 @@
                 <div class="row">
                     <div class="col-md-6 text-center text-md-start">
                         <p class="mb-0">&copy; {% now "Y" %} SoundSphere. All rights reserved.</p>
-                    </div>
-                    <div class="col-md-6 text-center text-md-end">
-                        <p class="mb-0">
-                            <a href="{% url 'Home:privacy_policy' %}" class="me-3">Privacy Policy</a>
-                            <a href="{% url 'Home:terms_of_service' %}" class="me-3">Terms of Service</a>
-                            <a href="{% url 'Home:about' %}">About Us</a>
-                        </p>
                     </div>
                 </div>
             </div>

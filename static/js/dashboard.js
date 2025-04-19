@@ -1,15 +1,10 @@
-/**
- * SoundSphere Dashboard JavaScript
- * This script handles all the chart and interactive functionality for the admin dashboard
- */
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard script loaded');
     
     // Initialize all charts
     initSalesChart();
     initCategoryChart();
-    initRevenueMetrics();
+    initRevenueByDeviceChart();
     
     // Set up date range filters
     setupDateFilters();
@@ -28,7 +23,7 @@ function initSalesChart() {
     const ctx = salesChartElement.getContext('2d');
     
     // Get theme colors from CSS variables
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3b82f6';
     const primaryLightColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-100').trim() || 'rgba(59, 130, 246, 0.2)';
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#333';
     const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#e5e7eb';
@@ -40,9 +35,36 @@ function initSalesChart() {
     gradient.addColorStop(0, primaryLightColor);
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     
-    // Sample data - in a real app, this would come from backend
-    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const salesData = [65, 59, 80, 81, 56, 55, 40, 84, 64, 75, 90, 85];
+    // Get data from the backend
+    // We're expecting the server to provide sales_data as a dictionary with day keys and sales values
+    const salesDataElement = document.getElementById('salesData');
+    let salesData;
+    
+    if (salesDataElement) {
+        try {
+            salesData = JSON.parse(salesDataElement.textContent);
+        } catch (e) {
+            console.error('Error parsing sales data', e);
+            salesData = null;
+        }
+    }
+    
+    // If we couldn't get data from the server, use default data
+    if (!salesData) {
+        salesData = {
+            'mon': 0, 
+            'tue': 0, 
+            'wed': 0, 
+            'thu': 0, 
+            'fri': 0, 
+            'sat': 0, 
+            'sun': 0
+        };
+    }
+    
+    // Convert to arrays for Chart.js
+    const labels = Object.keys(salesData).map(day => day.charAt(0).toUpperCase() + day.slice(1));
+    const values = Object.values(salesData);
     
     // Create chart
     const salesChart = new Chart(ctx, {
@@ -50,8 +72,8 @@ function initSalesChart() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Monthly Sales',
-                data: salesData,
+                label: 'Weekly Sales',
+                data: values,
                 backgroundColor: gradient,
                 borderColor: primaryColor,
                 borderWidth: 2,
@@ -174,7 +196,7 @@ function initSalesChart() {
                     newData = [42, 38, 35, 27, 43, 47, 38, 35, 42, 27, 35, 32, 43, 47, 41, 38, 42, 45, 35, 38, 32, 28, 35, 40, 38, 32, 28, 30, 32, 35];
                     salesChart.data.labels = Array.from({length: 30}, (_, i) => i + 1);
                 } else {
-                    newData = salesData;
+                    newData = values;
                     salesChart.data.labels = labels;
                 }
                 
@@ -200,17 +222,29 @@ function initCategoryChart() {
     const success = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#10b981';
     const warning = getComputedStyle(document.documentElement).getPropertyValue('--warning').trim() || '#f59e0b';
     const danger = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#ef4444';
+    const info = getComputedStyle(document.documentElement).getPropertyValue('--info').trim() || '#06b6d4';
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#333';
     const cardBg = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#fff';
+    
+    // Get data from the backend
+    const categoryNames = window.categoryNames || [];
+    const categorySales = window.categorySales || [];
+    
+    // If no data is available, use defaults
+    let labels = categoryNames.length > 0 ? categoryNames : ['No Data Available'];
+    let data = categorySales.length > 0 ? categorySales : [100];
+    
+    // Colors array for categories
+    const colorArray = [primary, secondary, success, warning, danger, info];
     
     // Create chart
     const categoryChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Headphones', 'Speakers', 'Accessories', 'Vinyl', 'Other'],
+            labels: labels,
             datasets: [{
-                data: [35, 25, 20, 15, 5],
-                backgroundColor: [primary, secondary, success, warning, danger],
+                data: data,
+                backgroundColor: colorArray.slice(0, data.length),
                 borderWidth: 0,
                 borderRadius: 4
             }]
@@ -241,7 +275,7 @@ function initCategoryChart() {
                             const value = context.raw;
                             const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
                             const percentage = Math.round((value / total) * 100);
-                            return `${context.label}: ${percentage}%`;
+                            return `${context.label}: $${value} (${percentage}%)`;
                         }
                     }
                 }
@@ -263,60 +297,48 @@ function initCategoryChart() {
 }
 
 /**
- * Initialize the revenue metrics and small charts
+ * Initialize the revenue by device chart
  */
-function initRevenueMetrics() {
-    const revenueByDeviceElement = document.getElementById('revenueByDeviceChart');
-    if (!revenueByDeviceElement) return;
+function initRevenueByDeviceChart() {
+    const chartElement = document.getElementById('revenueByDeviceChart');
+    if (!chartElement) return;
     
-    const ctx = revenueByDeviceElement.getContext('2d');
+    const ctx = chartElement.getContext('2d');
     
     // Get theme colors
     const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3b82f6';
-    const success = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#10b981';
+    const secondary = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim() || '#6366f1';
     const warning = getComputedStyle(document.documentElement).getPropertyValue('--warning').trim() || '#f59e0b';
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#333';
-    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#e5e7eb';
     const cardBg = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#fff';
     
+    // Get device data from backend (fallback to defaults if not available)
+    const deviceData = window.deviceData || { 'Desktop': 55, 'Mobile': 35, 'Tablet': 10 };
+    
     // Create chart
-    const revenueChart = new Chart(ctx, {
-        type: 'bar',
+    const chart = new Chart(ctx, {
+        type: 'pie',
         data: {
-            labels: ['Desktop', 'Mobile', 'Tablet'],
+            labels: Object.keys(deviceData),
             datasets: [{
-                label: 'Revenue by Device',
-                data: [65, 25, 10],
-                backgroundColor: [primary, success, warning],
-                borderWidth: 0,
-                borderRadius: 4
+                data: Object.values(deviceData),
+                backgroundColor: [primary, secondary, warning],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: textColor
-                    }
-                }
-            },
             plugins: {
                 legend: {
-                    display: false
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        boxWidth: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        color: textColor
+                    }
                 },
                 tooltip: {
                     backgroundColor: cardBg,
@@ -326,77 +348,58 @@ function initRevenueMetrics() {
                     borderWidth: 1,
                     callbacks: {
                         label: function(context) {
-                            return context.raw + '%';
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${context.label}: ${percentage}%`;
                         }
                     }
                 }
             }
         }
     });
-    
-    // Update chart colors when theme changes
-    const htmlElement = document.documentElement;
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.attributeName === "data-theme") {
-                updateChartColors(revenueChart);
-            }
-        });
-    });
-    
-    observer.observe(htmlElement, { attributes: true });
 }
 
 /**
- * Helper function to update chart colors when theme changes
+ * Update chart colors when theme changes
  */
 function updateChartColors(chart) {
-    // Get updated theme colors
+    // Get new theme colors
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    const primaryLightColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-100').trim() || 'rgba(59, 130, 246, 0.2)';
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
-    const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
-    const cardBg = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim();
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
     
-    // Update chart options
-    if (chart.options.scales.y) {
-        chart.options.scales.y.ticks.color = textColor;
-        chart.options.scales.y.grid.color = borderColor;
-    }
+    // Update chart colors
+    chart.options.scales.y.grid.color = gridColor;
+    chart.options.scales.y.ticks.color = textColor;
+    chart.options.scales.x.ticks.color = textColor;
     
-    if (chart.options.scales.x) {
-        chart.options.scales.x.ticks.color = textColor;
-    }
+    // Update dataset colors
+    chart.data.datasets[0].borderColor = primaryColor;
     
-    if (chart.options.plugins.legend && chart.options.plugins.legend.labels) {
-        chart.options.plugins.legend.labels.color = textColor;
-    }
+    // Create new gradient
+    const ctx = chart.ctx;
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, primaryLightColor);
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    chart.data.datasets[0].backgroundColor = gradient;
     
-    if (chart.options.plugins.tooltip) {
-        chart.options.plugins.tooltip.backgroundColor = cardBg;
-        chart.options.plugins.tooltip.titleColor = textColor;
-        chart.options.plugins.tooltip.bodyColor = textColor;
-        chart.options.plugins.tooltip.borderColor = borderColor;
-    }
-    
-    // For line charts, update point backgrounds
-    if (chart.config.type === 'line' && chart.data.datasets[0]) {
-        chart.data.datasets[0].pointBackgroundColor = cardBg;
-    }
-    
-    // Update the chart with new options
+    // Update chart
     chart.update();
 }
 
 /**
- * Set up date range filters for dashboard data
+ * Set up date range filters for charts
  */
 function setupDateFilters() {
     const dateRangeSelect = document.getElementById('dateRangeSelect');
     if (!dateRangeSelect) return;
     
     dateRangeSelect.addEventListener('change', function() {
-        console.log('Date range changed to:', this.value);
-        // This would typically trigger an AJAX request to refresh data
-        // For demo purposes, we'll just log it
+        // In a real app, this would fetch data from the server based on the selected date range
+        // For now, we'll just log the selected value
+        console.log('Date range changed to', this.value);
     });
 }
 
@@ -404,25 +407,22 @@ function setupDateFilters() {
  * Set up responsive behaviors for dashboard
  */
 function setupResponsiveLayout() {
-    const dashboardContainer = document.querySelector('.dashboard-container');
-    if (!dashboardContainer) return;
+    // Add any responsive behaviors here
     
-    // Monitor for screen size changes
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    
-    function handleScreenChange(e) {
-        if (e.matches) {
-            console.log('Mobile view activated');
-            // Apply mobile optimizations
-        } else {
-            console.log('Desktop view activated');
-            // Apply desktop optimizations
-        }
-    }
+    // Handle window resize events
+    window.addEventListener('resize', handleScreenChange);
     
     // Initial check
-    handleScreenChange(mediaQuery);
+    handleScreenChange();
     
-    // Add listener for changes
-    mediaQuery.addEventListener('change', handleScreenChange);
+    function handleScreenChange() {
+        const width = window.innerWidth;
+        
+        // Adjust card layouts on smaller screens
+        if (width < 768) {
+            // Mobile layout adjustments if needed
+        } else {
+            // Desktop layout adjustments if needed
+        }
+    }
 } 

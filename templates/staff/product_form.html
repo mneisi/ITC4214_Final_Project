@@ -180,8 +180,9 @@
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            <label for="id_subcategory" class="form-label">Subcategory</label>
-                            <select name="subcategory" id="id_subcategory" class="form-select {% if form.subcategory.errors %}is-invalid{% endif %}">
+                            <label for="id_subcategory" class="form-label">Subcategory*</label>
+                            <select name="subcategory" id="id_subcategory" class="form-select {% if form.subcategory.errors %}is-invalid{% endif %}" required 
+                                   data-initial-value="{% if form.subcategory.value %}{{ form.subcategory.value }}{% endif %}">
                                 <option value="">Select Subcategory</option>
                                 {% if subcategories %}
                                 {% for subcategory in subcategories %}
@@ -214,7 +215,7 @@
                     </div>
                     
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="id_price" class="form-label">Price ($)*</label>
                             <input type="number" name="price" id="id_price" step="0.01" min="0" class="form-control {% if form.price.errors %}is-invalid{% endif %}" value="{{ form.price.value|default:'' }}" required>
                             {% if form.price.errors %}
@@ -225,7 +226,7 @@
                             </div>
                             {% endif %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="id_sale_price" class="form-label">Sale Price ($)</label>
                             <input type="number" name="sale_price" id="id_sale_price" step="0.01" min="0" class="form-control {% if form.sale_price.errors %}is-invalid{% endif %}" value="{{ form.sale_price.value|default:'' }}">
                             {% if form.sale_price.errors %}
@@ -236,12 +237,28 @@
                             </div>
                             {% endif %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="id_stock" class="form-label">Stock Quantity*</label>
                             <input type="number" name="stock" id="id_stock" min="0" class="form-control {% if form.stock.errors %}is-invalid{% endif %}" value="{{ form.stock.value|default:'' }}" required>
                             {% if form.stock.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.stock.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_availability" class="form-label">Availability*</label>
+                            <select name="availability" id="id_availability" class="form-select {% if form.availability.errors %}is-invalid{% endif %}" required>
+                                <option value="">Select Availability</option>
+                                <option value="In Stock" {% if form.availability.value == "In Stock" %}selected{% endif %}>In Stock</option>
+                                <option value="Out of Stock" {% if form.availability.value == "Out of Stock" %}selected{% endif %}>Out of Stock</option>
+                                <option value="Pre-order" {% if form.availability.value == "Pre-order" %}selected{% endif %}>Pre-order</option>
+                            </select>
+                            {% if form.availability.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.availability.errors %}
                                 {{ error }}
                                 {% endfor %}
                             </div>
@@ -305,11 +322,11 @@
                             <div class="row">
                                 <div class="col-md-5">
                                     <label class="form-label">Specification Name</label>
-                                    <input type="text" name="spec_name" class="form-control" required>
+                                    <input type="text" name="spec_name[]" class="form-control" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Specification Value</label>
-                                    <input type="text" name="spec_value" class="form-control" required>
+                                    <input type="text" name="spec_value[]" class="form-control" required>
                                 </div>
                                 <div class="col-md-1 d-flex align-items-end">
                                     <button type="button" class="btn btn-danger remove-spec-btn">
@@ -361,8 +378,8 @@
                     </div>
                     
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="id_is_featured" name="is_featured" {% if form.is_featured.value %}checked{% endif %}>
-                        <label class="form-check-label" for="id_is_featured">Featured Product</label>
+                        <input class="form-check-input" type="checkbox" id="id_featured" name="featured" value="true" {% if form.featured.value %}checked{% endif %}>
+                        <label class="form-check-label" for="id_featured">Featured Product</label>
                     </div>
                     
                     <div class="mt-4 d-flex justify-content-between">
@@ -385,6 +402,11 @@
         const categorySelect = document.getElementById('id_category');
         const subcategorySelect = document.getElementById('id_subcategory');
         
+        // If editing an existing product, load subcategories on page load
+        if (categorySelect.value) {
+            fetchSubcategories(categorySelect.value);
+        }
+        
         categorySelect.addEventListener('change', function() {
             fetchSubcategories(this.value);
         });
@@ -403,6 +425,12 @@
                         const option = document.createElement('option');
                         option.value = subcategory.id;
                         option.textContent = subcategory.name;
+                        
+                        // If editing and this was the selected subcategory, reselect it
+                        if (subcategorySelect.dataset.initialValue == subcategory.id) {
+                            option.selected = true;
+                        }
+                        
                         subcategorySelect.appendChild(option);
                     });
                 })
@@ -475,11 +503,11 @@
                 <div class="row">
                     <div class="col-md-5">
                         <label class="form-label">Specification Name</label>
-                        <input type="text" name="spec_name" class="form-control" required>
+                        <input type="text" name="spec_name[]" class="form-control" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Specification Value</label>
-                        <input type="text" name="spec_value" class="form-control" required>
+                        <input type="text" name="spec_value[]" class="form-control" required>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="button" class="btn btn-danger remove-spec-btn">
